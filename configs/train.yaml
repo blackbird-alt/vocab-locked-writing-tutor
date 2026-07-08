@@ -1,0 +1,42 @@
+# QLoRA training config. Consumed by train/qlora_colab.ipynb (values are duplicated
+# there for a self-contained notebook, but this file is the source of truth).
+
+# Smoke test uses the 0.6B model; the real run uses 1.7B.
+base_model_smoke: "unsloth/Qwen3-0.6B"
+base_model: "unsloth/Qwen3-1.7B"
+
+max_seq_length: 2048
+load_in_4bit: true
+
+# LoRA
+lora_r: 16
+lora_alpha: 16
+lora_dropout: 0.0
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# Optimizer / schedule
+learning_rate: 2.0e-4
+num_train_epochs: 3
+per_device_train_batch_size: 8
+gradient_accumulation_steps: 2
+warmup_ratio: 0.05
+weight_decay: 0.01
+lr_scheduler_type: "linear"
+seed: 3407
+
+# Data
+train_file: "data/train.jsonl"
+# Whether to train with a minimal system prompt baked in (recommended) so behavior
+# holds even when the deployed system prompt is minimal/empty.
+system_prompt_mode: "minimal"   # one of: minimal | none | full
+
+# Output
+output_dir: "outputs/grimwald-qlora"
+hub_model_id: ""   # e.g. "your-username/qwen3-1.7b-grimwald-npc"

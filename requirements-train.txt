@@ -1,0 +1,14 @@
+# Training deps. These are meant to run on Colab / Kaggle (Linux, CUDA, Python 3.10/3.11),
+# NOT on the local 4GB Windows GPU. The Colab notebook installs these itself; this file
+# documents the exact stack for reproducibility.
+
+unsloth
+# Unsloth pulls compatible versions of the following, pinned here for reference:
+trl>=0.9.6
+peft>=0.11.1
+transformers>=4.51.0
+datasets>=2.19.0
+accelerate>=0.30.0
+bitsandbytes>=0.43.1
+# For pushing to the Hub:
+huggingface_hub>=0.23.0

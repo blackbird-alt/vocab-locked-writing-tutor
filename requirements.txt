@@ -1,0 +1,25 @@
+# Local (Windows / 4GB GPU) deps: data generation, eval, and inference demo.
+# These intentionally avoid training libs (Unsloth/bitsandbytes) which run on Colab/Kaggle.
+# Python 3.10-3.12 recommended locally. If you are on 3.13, most of these still work,
+# but for the local inference demo prefer a 3.11 venv for smoother torch wheels.
+
+# --- Core ---
+requests>=2.31.0
+python-dotenv>=1.0.1
+tqdm>=4.66.0
+tenacity>=8.2.3
+
+# --- Data / eval ---
+pydantic>=2.6.0
+
+# --- Local inference demo (optional; heavy) ---
+# Install torch separately matching your CUDA, e.g.:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+transformers>=4.51.0
+accelerate>=0.30.0
+gradio>=4.44.0
+
+# Optional teacher SDKs (only if you use these providers directly).
+# The teacher client also works with plain REST via `requests`, so these are optional.
+google-generativeai>=0.8.0 ; python_version < "3.13"
+openai>=1.30.0

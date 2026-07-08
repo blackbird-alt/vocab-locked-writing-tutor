@@ -1,0 +1,32 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Data artifacts that are regenerated (keep small curated files, ignore bulky raw)
+data/raw/*.jsonl
+!data/raw/.gitkeep
+
+# Model outputs / checkpoints
+outputs/
+adapters/
+merged/
+*.gguf
+*.safetensors
+
+# Results are committed, but ignore scratch
+results/scratch/
+
+# Transient chat daemon I/O
+demo/chat_io/
+
+# OS
+.DS_Store
+Thumbs.db
