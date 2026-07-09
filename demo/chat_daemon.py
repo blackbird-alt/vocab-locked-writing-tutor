@@ -1,14 +1,14 @@
-"""Warm chat daemon: load Sable once, answer prompts dropped into an inbox dir.
+"""Warm chat daemon: load the tutor once, answer prompts dropped into an inbox dir.
 
 Used so someone (or the agent relaying) can hold a conversation without paying the
 ~2 minute model load on every message. Protocol is plain files:
 
   - Write a prompt to   demo/chat_io/<id>.in   (UTF-8 text, the user's message)
-  - The daemon writes    demo/chat_io/<id>.out  (UTF-8 text, Sable's reply)
+  - The daemon writes    demo/chat_io/<id>.out  (UTF-8 text, the tutor's reply)
     and removes the .in file when done.
 
 Run:
-    python demo/chat_daemon.py --adapter outputs/sable-0.6b-v1
+    python demo/chat_daemon.py --adapter outputs/tutor-0.6b-v2
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ IO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_io")
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="Qwen/Qwen3-0.6B")
-    ap.add_argument("--adapter", default="outputs/sable-0.6b-v1")
+    ap.add_argument("--adapter", default="outputs/tutor-0.6b-v2")
     ap.add_argument("--system", default="minimal", choices=list(SYSTEM_PROMPTS))
     ap.add_argument("--max-new-tokens", type=int, default=200)
     ap.add_argument("--temperature", type=float, default=0.7)

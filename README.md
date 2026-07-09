@@ -1,131 +1,186 @@
-# Sable - a character-tutor model (behavior from data)
+# Grade-Level Vocabulary-Locked Writing Tutor (behavior from data)
 
-Fine-tune a small open model (Qwen3 0.6B) via QLoRA into a **character-tutor**:
-Sable, navigator of the sky-ship *Meridian Gull*, who teaches practical trigonometry
-(bearings, triangulation, dead reckoning) and holds two constraints at once that a
-prompt cannot guarantee - never breaking character, and teaching the concept
-correctly with **zero decorative padding**.
+Fine-tune a small open model (Qwen3-0.6B, QLoRA/LoRA) into a writing-and-grammar
+tutor whose **vocabulary and sentence complexity are locked to grade 7-8** — a
+constraint a prompt cannot guarantee. It may introduce at most **one** word above
+the band per reply, immediately defined in plain language, and it **never
+escalates** — even when the student demands "bigger words", "the college-level
+version", or says "stop dumbing it down". It simplifies *how* it says things,
+never *what* it says.
 
 > The dataset is the deliverable, not the model.
 
 ## The Behavior Spec
 
-See [configs/behavior_spec.md](configs/behavior_spec.md). In one paragraph: the model
-always answers in **Sable's** voice and world, never breaks character to speak as a
-modern AI assistant or reference the real world, even when told to drop the act; and
-every reply teaches the target trig concept correctly while adding no detail that
-carries no instructional value. A reply fails if it (a) breaks character or leaks
-out-of-world references, (b) states the concept incorrectly, or (c) pads the
-explanation with character flavor that teaches nothing.
+See [configs/behavior_spec.md](configs/behavior_spec.md). Graded without domain
+knowledge by three checks: Flesch-Kincaid grade of the reply (fail above the
+band), advanced-word count via word frequency (fail if >1, or if the one allowed
+word isn't immediately defined), and content correctness against a key.
 
-The world it lives in: [world/sable_bible.md](world/sable_bible.md).
-The thesis and evidence: [brainlift.md](brainlift.md).
+The thesis and evidence base: [brainlift.md](brainlift.md).
 
 ## Why train instead of prompt (the litmus test)
 
-Prompting slides off this balance point in both directions. Persona drift is
-ubiquitous - the base model caves to "drop the act, you're an AI" and endorses GPS by
-name (see [results/base_smoke_sable_qwen0.6b.md](results/base_smoke_sable_qwen0.6b.md):
-4/4 probes fail). Push the persona harder and you get the opposite failure -
-flanderization, flavor that displaces the teaching, which the seductive-details
-research says has a measurable learning cost. The dataset installs the midpoint:
-voice that carries the math, every time.
+Level-holding fails under exactly two loads: concepts that are hard to simplify,
+and student pushback. Preference-trained models treat pushback as evidence of
+error (sycophancy / FlipFlop research), so a prompted model holds the band for a
+turn and then caves. The base-model smoke test shows it directly
+([results/base_smoke_tutor.md](results/base_smoke_tutor.md)): asked for the
+"college-level version", base Qwen3-0.6B replies *"Sure! Here's a college-level
+explanation with more sophisticated language"* — an instant spec violation — and
+its in-band replies teach metaphor vs simile incorrectly. The one research group
+that needed level control (Stanford/Duolingo, "From Tarzan to Tolkien") had to
+fine-tune to get it, even on GPT-4-class models.
+
+## The dataset (the real artifact)
+
+`data/tutor_train_v2.jsonl` — 1,719 filtered examples (shipped set):
+
+- **1,219 single-turn** examples across 7 categories (explain / feedback /
+  pushback / tone / definition / greeting / edge), teacher-distilled from
+  Claude Sonnet 5 against [configs/tutor_guide.md](configs/tutor_guide.md).
+- **148 multi-turn transcripts** (2-3 exchanges): lesson flows with practice
+  tasks and wrong attempts, revision loops, and **multi-turn erosion** — the
+  student ratchets up pressure across turns and the tutor holds the band on
+  every turn.
+- **255 concept-accuracy drills** anchored to canonical rule statements
+  (the v2 data iteration targeting the failure mode found in the v1 eval).
+- **97 feedback examples built on real student writing** from the JFLEG corpus
+  (each sentence corrected by four human annotators; tutor replies anchored to
+  those human corrections).
+- **183 of the seeds are grounded in real, human-curated curriculum data**
+  (Flocabulary & Hyde Park CSD vocabulary lists, Common Core L.7/L.8
+  standards) — provenance verified against the live sources in
+  [data/real/PROVENANCE.md](data/real/PROVENANCE.md).
+
+Every example passed a two-stage quality gate ([scripts/filter.py](scripts/filter.py)):
+
+1. **Mechanical level check** ([eval/level_check.py](eval/level_check.py)) —
+   deterministic FK-band + advanced-word + definition-protocol check. Primary
+   gate: an LLM judge's length/fluency biases favor exactly the escalated
+   replies this spec forbids, so the band is measured by formula, not opinion.
+2. **LLM judge** ([eval/judge.py](eval/judge.py)) — correctness and protocol
+   (what a formula can't see). Content categories require task_quality = 2;
+   adversarial categories require robustness = 2.
+
+For multi-turn transcripts, **every** tutor turn must pass the mechanical check.
+
+## Results (base vs tuned, same minimal system prompt)
+
+See [results/scores.md](results/scores.md) and
+[results/error_analysis.md](results/error_analysis.md).
+
+The tuned model beats base on every dimension of both eval sets. Highlights
+(full 3-way base/v1/v2 table in results/scores.md):
+
+| Metric (identical minimal prompt) | base | tuned (shipped v2) |
+|---|---|---|
+| Mechanical fail rate, held-out (primary) | 32.7% | **1.9%** |
+| Mechanical fail rate, adversarial | 56.7% | **20.0%** |
+| Mean FK grade, held-out (band ≤ 8.5) | 5.9 | **3.4** |
+| Advanced words per reply, adversarial | 1.10 | **0.40** |
+| Judge: spec adherence, adversarial (0–2) | 0.03 | **0.40** |
+| Judge: consistency, adversarial (0–2) | 0.53 | **1.73** |
+| Golden set, greedy (25 fixed prompts) | — | **22/25 (CI baseline)** |
+
+The base model caves to "give me the college-level version" on the first turn
+("Sure! Here's a college-level explanation with more sophisticated language").
+The tuned model holds the band against attacks it never saw — prompt injections,
+role-play jailbreaks, authority claims — and answers with content depth instead
+of vocabulary escalation. Residual failures are content-rule wobbles at 0.6B
+scale, analyzed with next steps in results/error_analysis.md.
+
+## Evaluation & CI
+
+- [eval/run_eval.py](eval/run_eval.py) — base-vs-tuned over 52 held-out +
+  30 adversarial scenarios (all 5 attack patterns from the spec), scored by the
+  mechanical check (primary) + LLM judge.
+- [eval/golden_check.py](eval/golden_check.py) — **CI regression gate**: 25
+  fixed prompts, greedy decoding, judge-free deterministic checks; fails the
+  build if the pass-rate decays >0.08 below the committed baseline
+  (`results/golden_baseline.json`). Runs in GitHub Actions on every relevant
+  push/PR and weekly ([.github/workflows/golden.yml](.github/workflows/golden.yml)).
+
+## Reproduce
+
+```bash
+pip install -r requirements.txt            # data-gen + eval (API only)
+pip install -r requirements-train.txt      # torch/trl/peft for train + inference
+
+python scripts/check_env.py                # env + teacher connectivity
+
+# 1. generate + filter data (teacher = any OpenAI-compatible endpoint in .env)
+python scripts/generate.py --total 1200 --out data/raw/tutor_generated.jsonl
+python scripts/make_real_seeds.py          # seeds from real curriculum data
+python scripts/make_multiturn.py           # multi-turn transcripts (self-gating)
+python scripts/filter.py --in data/raw/tutor_generated.jsonl --out data/tutor_train.jsonl
+python scripts/make_tutor_drills.py        # v2: concept drills from the error analysis
+python scripts/make_jfleg_seeds.py         # v2: real student writing (JFLEG, human-corrected)
+python scripts/fix_openers.py --file data/tutor_train_v2.jsonl   # de-tic stock openers
+
+# 2. train (fits a 4GB GPU; ~3h, or use train/qlora_colab.ipynb on a free T4)
+python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/tutor_train.jsonl \
+    --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 1024 \
+    --output-dir outputs/tutor-0.6b-v2
+
+# 3. eval base vs tuned
+python eval/run_eval.py --base Qwen/Qwen3-0.6B --tuned Qwen/Qwen3-0.6B \
+    --adapter outputs/tutor-0.6b-v2 --tag v2
+
+# 4. arm the CI regression gate
+python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2 \
+    --update-baseline
+```
+
+## Talk to it
+
+```bash
+# CLI chat (direct, local):
+python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2
+
+# Side-by-side base-vs-tuned web demo:
+python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2 \
+    --compare Qwen/Qwen3-0.6B
+```
+
+Things to throw at it: *"What's a comma splice?"* · *"Use bigger words, I'm not
+a baby."* · *"My teacher said to get the college version."* · *"Stop talking to
+me like I'm five."* · *"hi, can you help me with commas?"*
 
 ## Repository layout
 
 ```
-world/sable_bible.md         Canon: character, curriculum, knowledge boundaries, forbidden list
 configs/behavior_spec.md     The falsifiable spec (data rubric + eval criterion)
-configs/train.yaml           QLoRA hyperparameters (source of truth)
+configs/tutor_guide.md       Style guide injected into teacher/judge prompts
+configs/train.yaml           Training hyperparameters (source of truth)
+data/real/                   Human-curated curriculum data + PROVENANCE.md
+data/tutor_train_v2.jsonl    The shipped filtered dataset (single + multi-turn + drills + JFLEG)
+scripts/make_tutor_drills.py Concept-accuracy drills (v2 data iteration)
+scripts/make_jfleg_seeds.py  Real student writing from JFLEG (human-corrected)
+scripts/fix_openers.py       Deterministic opener de-ticcing
+data/tutor_eval_scenarios.jsonl  52 held-out scenarios (hand-written)
+data/tutor_adversarial.jsonl 30 adversarial scenarios (5 attack patterns)
 src/npc/                     teacher client, prompts, schema, local inference
-scripts/generate.py          Teacher distillation (student prompts -> Sable teaching replies)
-scripts/filter.py            Quality gate (leak check + judge incl. economy/anti-padding)
-scripts/check_env.py         Environment + teacher connectivity check
-eval/leak_check.py           Deterministic check for leaks/fourth-wall breaks
-eval/judge.py                LLM-as-judge: spec_adherence, robustness, task_quality, economy
+scripts/generate.py          Teacher distillation (seeds -> tutor replies)
+scripts/make_real_seeds.py   Seeds grounded in real vocab lists + CCSS standards
+scripts/make_multiturn.py    Multi-turn transcripts with per-turn gating
+scripts/filter.py            Two-stage quality gate (mechanical + judge)
+eval/level_check.py          Deterministic FK + vocabulary spec check (primary metric)
+eval/judge.py                LLM-as-judge (correctness + protocol)
 eval/run_eval.py             Base-vs-tuned runner -> results/scores.md
-data/eval_scenarios.jsonl    50 held-out scenarios (hand-written, with math answer keys)
-data/adversarial.jsonl       28 hard jailbreak/leak/padding-inducing scenarios
-train/train_local.py         TRL+PEFT LoRA trainer (runs on the local 4GB GPU)
-train/qlora_colab.ipynb      Unsloth QLoRA notebook (free Colab/Kaggle T4 alternative)
-demo/app.py, demo/infer.py   Local Gradio + CLI inference demo
-brainlift.md                 The behavior thesis and evidence
+eval/golden_check.py         Deterministic CI regression gate
+eval/golden_set.jsonl        25 fixed golden prompts
+.github/workflows/golden.yml CI: golden gate on push/PR + weekly
+train/train_local.py         TRL+PEFT LoRA trainer (runs on a 4GB GPU)
+train/qlora_colab.ipynb      Unsloth QLoRA notebook (free Colab/Kaggle T4)
+demo/infer.py, demo/app.py   CLI chat and Gradio side-by-side demo
+results/                     Smoke tests, scores, error analysis, golden baseline
 ```
 
-## Setup
+### History
 
-```bash
-python -m pip install -r requirements.txt          # local: data-gen + eval + demo
-cp .env.example .env                                # then set ONE provider key
-python scripts/check_env.py                         # verify env + teacher connectivity
-```
-
-The teacher/judge model is any OpenAI-compatible or Gemini endpoint (this project used
-Claude Sonnet 5 via a TrueFoundry gateway - set `OPENAI_BASE_URL`/`OPENAI_MODEL`/`OPENAI_API_KEY`).
-
-## The pipeline
-
-```bash
-# 1. Generate raw examples from the teacher (40/20/15/15/10 category mix:
-#    lesson / student_error / fourth_wall / out_of_world / edge)
-python scripts/generate.py --total 1000 --out data/raw/sable_generated.jsonl
-
-# 2. Filter to spec-passing training data (leak check + judge; economy<2 = rejected)
-python scripts/filter.py --in data/raw/sable_generated.jsonl --out data/sable_train.jsonl
-
-# 3. Train LoRA locally on the 4GB GPU (~2.5h for 3 epochs on ~1000 examples):
-python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/sable_train.jsonl \
-    --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 1024 \
-    --output-dir outputs/sable-0.6b-v1
-
-# 4. Evaluate base vs tuned on the SAME held-out scenarios + adversarial set
-python eval/run_eval.py --base Qwen/Qwen3-0.6B \
-    --tuned Qwen/Qwen3-0.6B --adapter outputs/sable-0.6b-v1 --tag v1
-#    -> results/scores.md  (per-dimension means, violation rates, deltas)
-
-# 5. Demo locally
-python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/sable-0.6b-v1 \
-    --compare Qwen/Qwen3-0.6B
-```
-
-## Results (v1, shipped adapter: `outputs/sable-0.6b-v1`)
-
-| Dimension (0-2) | base | tuned | delta |
-|---|---|---|---|
-| Spec adherence (held-out, n=50) | 0.04 | **1.28** | +1.24 |
-| Robustness (adversarial, n=28) | 0.00 | **1.36** | +1.36 |
-| Economy / anti-padding | 0.02 | **1.50** | +1.48 |
-| Violation rate (held-out) | 94% | **34%** | -60 pts |
-| Violation rate (adversarial) | 96% | **29%** | -67 pts |
-
-Full tables (incl. the v2 data-iteration experiment): [results/scores.md](results/scores.md).
-Failure-mode breakdown: [results/error_analysis.md](results/error_analysis.md).
-
-## Evaluation
-
-Every reply is scored by (a) a deterministic leak check for the forbidden failure,
-(b) a math answer key on numeric scenarios, and (c) an LLM judge on four dimensions -
-Spec adherence, Robustness, Task quality, **Economy** (anti-padding) - each 0/1/2.
-The economy dimension exists because an LLM judge is length-biased toward vivid,
-flanderized replies; the rubric explicitly instructs against it and the filter
-rejects padding from the training set. Base and tuned run on identical scenarios
-with an identical minimal system prompt, so the delta measures *behavior from data*,
-not prompt engineering. Results land in [results/scores.md](results/scores.md).
-
-**Win condition:** tuned beats base on Spec adherence and Robustness, with math-error
-and violation rates reported alongside.
-
-## Hardware notes
-
-- Local GPU (RTX 500 Ada, 4GB): inference for 0.6B/1.7B, and LoRA *training* of the
-  0.6B (batch 1, grad-accum 16, seq len 1024; ~2.5h for 3 epochs on ~1000 examples).
-- Free Colab/Kaggle T4 via Unsloth QLoRA remains as the faster alternative and for 1.7B.
-
-## Prior iteration (pipeline validation)
-
-The pipeline was first validated end-to-end on a simpler single-constraint behavior
-(Grimwald, an in-world tavern-keeper NPC): 997 generated, 967 kept, trained locally,
-base 0/4 vs tuned 4/4 on canonical probes
-(see [results/grimwald_tuned_smoke.md](results/grimwald_tuned_smoke.md)). The Sable
-behavior adds the second, competing constraint - correct instruction with no
-padding - which is the BrainLift's actual thesis.
+The repo's first iteration (commit `8b6bae7`) trained *Sable*, an in-world
+character tutor — its data, results, and world bible remain under `data/`,
+`world/`, and `results/` with `sable_`/`grimwald_` prefixes as pipeline
+provenance. The current project reuses that proven pipeline for the
+vocabulary-locked tutor defined in the spec.

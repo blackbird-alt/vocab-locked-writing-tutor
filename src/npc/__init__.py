@@ -1,4 +1,4 @@
-"""Sable character-tutor fine-tuning toolkit.
+"""Grade-level vocabulary-locked tutor fine-tuning toolkit.
 
 Modules:
 - teacher: unified client for frontier teacher/judge models (Gemini/OpenRouter/Groq/OpenAI-compatible).

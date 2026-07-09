@@ -1,4 +1,4 @@
-"""CLI chat demo for Sable, the character-tutor.
+"""CLI chat demo for the grade-level vocabulary-locked writing tutor.
 
 Examples
 --------
@@ -6,10 +6,10 @@ Examples
 python demo/infer.py --model Qwen/Qwen3-0.6B --system minimal
 
 # Tuned model (merged) pushed to the Hub or a local folder:
-python demo/infer.py --model your-username/qwen3-0.6b-sable-tutor --system minimal
+python demo/infer.py --model your-username/qwen3-0.6b-leveled-tutor --system minimal
 
 # Base + LoRA adapter (unmerged):
-python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/sable-0.6b-v1
+python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v1
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ def main() -> None:
     model = NpcModel(args.model, adapter_id=args.adapter, load_in_4bit=args.load_in_4bit)
     cfg = GenConfig(max_new_tokens=args.max_new_tokens, temperature=args.temperature)
 
-    print("\nThe chart table is lit. Sable looks up from the compass rose. (type 'quit' to leave)\n")
+    print("\nYour writing tutor is ready. (type 'quit' to leave)\n")
     while True:
         try:
             user = input("you> ").strip()
@@ -51,7 +51,7 @@ def main() -> None:
         if not user:
             continue
         reply = model.generate(user, system=system, cfg=cfg)
-        print(f"\nSable> {reply}\n")
+        print(f"\nTutor> {reply}\n")
 
 
 if __name__ == "__main__":

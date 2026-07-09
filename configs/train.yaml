@@ -32,11 +32,11 @@ lr_scheduler_type: "linear"
 seed: 3407
 
 # Data
-train_file: "data/train.jsonl"
+train_file: "data/tutor_train_v2.jsonl"
 # Whether to train with a minimal system prompt baked in (recommended) so behavior
 # holds even when the deployed system prompt is minimal/empty.
 system_prompt_mode: "minimal"   # one of: minimal | none | full
 
 # Output
-output_dir: "outputs/grimwald-qlora"
-hub_model_id: ""   # e.g. "your-username/qwen3-1.7b-grimwald-npc"
+output_dir: "outputs/tutor-0.6b-v2"
+hub_model_id: ""   # e.g. "your-username/qwen3-0.6b-leveled-tutor"

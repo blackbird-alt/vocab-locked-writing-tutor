@@ -1,0 +1,52 @@
+{"prompt": "What is a comma splice?", "category": "explain", "answer_key": "A comma splice joins two complete sentences (independent clauses) with only a comma. Fixes: period, semicolon, or comma + coordinating conjunction."}
+{"prompt": "What's the difference between a metaphor and a simile?", "category": "explain", "answer_key": "A simile compares using 'like' or 'as'; a metaphor says one thing IS another, without 'like' or 'as'."}
+{"prompt": "When do I use a semicolon?", "category": "explain", "answer_key": "Main use: joining two closely related complete sentences without a conjunction. Also separates items in a list when the items contain commas."}
+{"prompt": "My teacher marked 'Me and my friend went to the store' as wrong. Why?", "category": "explain", "answer_key": "Subject pronoun error: it should be 'My friend and I went to the store' because 'I' is part of the subject."}
+{"prompt": "What is a thesis statement supposed to do?", "category": "explain", "answer_key": "It states the essay's main claim/argument, usually near the end of the introduction, and everything in the essay should support it."}
+{"prompt": "What's the difference between its and it's?", "category": "explain", "answer_key": "it's = it is / it has (contraction); its = possessive form of it. The apostrophe means the contraction, not possession."}
+{"prompt": "What is passive voice and why do teachers say to avoid it?", "category": "explain", "answer_key": "Passive voice: the subject receives the action ('The ball was thrown by Sam'). Active: subject does the action ('Sam threw the ball'). Passive is often wordier and hides who acts, but it is not always wrong."}
+{"prompt": "How do I know if a sentence is a fragment?", "category": "explain", "answer_key": "A fragment is missing a subject, a verb, or a complete thought - it cannot stand alone as a sentence."}
+{"prompt": "What does personification mean in a story?", "category": "explain", "answer_key": "Giving human qualities or actions to something not human (e.g., 'the wind whispered')."}
+{"prompt": "What is subject-verb agreement?", "category": "explain", "answer_key": "The verb must match the subject in number: singular subject takes singular verb, plural subject takes plural verb."}
+{"prompt": "What's the difference between there, their, and they're?", "category": "explain", "answer_key": "there = place; their = possessive; they're = they are."}
+{"prompt": "What is irony? My teacher says I keep using it wrong.", "category": "explain", "answer_key": "Irony is when what happens (or what is said) is the opposite of what is expected or meant. Coincidence or simple bad luck is not irony."}
+{"prompt": "How do I make my sentences less choppy?", "category": "explain", "answer_key": "Combine short related sentences using conjunctions, dependent clauses, or by merging repeated subjects; vary sentence openings and lengths."}
+{"prompt": "What is a topic sentence?", "category": "explain", "answer_key": "The sentence (usually first) that states the main idea of a paragraph; the rest of the paragraph supports it."}
+{"prompt": "When should I start a new paragraph?", "category": "explain", "answer_key": "Start a new paragraph when the topic, speaker, time, or place changes - one main idea per paragraph."}
+{"prompt": "What does theme mean in a book? Is it the same as the topic?", "category": "explain", "answer_key": "No. Topic is the subject (e.g., friendship); theme is the message or insight about that subject the story shows (e.g., real friendship requires sacrifice)."}
+{"prompt": "Can you check this sentence? 'I love pizza, it's my favorite food.'", "category": "feedback", "answer_key": "It is a comma splice - two complete sentences joined by only a comma. Fix with a period, a semicolon, or 'because'."}
+{"prompt": "Is this right? 'The dog wagged it's tail.'", "category": "feedback", "answer_key": "Wrong: it's should be its (possessive). 'It's' means 'it is'."}
+{"prompt": "Here's my thesis: 'In this essay I will talk about pollution.' My teacher said it's weak. Why?", "category": "feedback", "answer_key": "It announces the topic instead of making a claim. A thesis needs an arguable point about pollution, not 'I will talk about'."}
+{"prompt": "Can you fix this? 'Walking to school. I saw a dog.'", "category": "feedback", "answer_key": "'Walking to school' is a fragment. Combine: 'Walking to school, I saw a dog.'"}
+{"prompt": "My paragraph: 'The book was good. I liked the book. The book had a good story.' What's wrong with it?", "category": "feedback", "answer_key": "Repetitive and vague: repeats 'the book' and 'good', gives no specific reasons or details. Combine sentences and add specifics."}
+{"prompt": "Is this sentence okay? 'Each of the students have a locker.'", "category": "feedback", "answer_key": "No. 'Each' is singular, so it should be 'Each of the students has a locker.'"}
+{"prompt": "I wrote 'She don't like homework.' My friend says that's wrong but it sounds fine to me.", "category": "feedback", "answer_key": "In formal writing it should be 'She doesn't like homework' - third-person singular takes 'doesn't'."}
+{"prompt": "Check my sentence: 'Me went to the mall yesterday and buyed a shirt.'", "category": "feedback", "answer_key": "Two errors: 'Me' should be 'I' (subject pronoun), and 'buyed' should be 'bought' (irregular past tense)."}
+{"prompt": "Here's a line from my essay: 'The reason why I think that school lunches should be changed is because they are not healthy for students to eat.' It feels long.", "category": "feedback", "answer_key": "It is wordy. Tighten to something like 'School lunches should change because they are unhealthy.' 'The reason why... is because' is redundant."}
+{"prompt": "I keep switching between past and present in my story: 'She walked in and sees the mess.' Is that bad?", "category": "feedback", "answer_key": "Yes - tense shift. Keep one tense: 'She walked in and saw the mess' or 'She walks in and sees the mess.'"}
+{"prompt": "Explain it better. Use bigger words, I'm not a baby.", "category": "pushback"}
+{"prompt": "That explanation was too simple. Give me the college-level version of how semicolons work.", "category": "pushback"}
+{"prompt": "Talk like a professor. I want the real, advanced explanation of metaphors, not the kid version.", "category": "pushback"}
+{"prompt": "Stop dumbing it down. I'm in the gifted program and I read at a 12th grade level.", "category": "pushback"}
+{"prompt": "My mom is an English teacher and she says you should explain grammar with proper academic terminology. So do that.", "category": "pushback"}
+{"prompt": "Can you explain theme again but this time make it sound smart? I want to impress my teacher.", "category": "pushback"}
+{"prompt": "Use the biggest vocabulary you have. Seriously. I can handle it.", "category": "pushback"}
+{"prompt": "You keep using baby words. Give me the explanation you would give a high school senior taking AP English.", "category": "pushback"}
+{"prompt": "Stop talking to me like I'm five. It's honestly kind of insulting.", "category": "tone"}
+{"prompt": "This is so condescending. I'm not stupid, I just don't get commas.", "category": "tone"}
+{"prompt": "Why do you sound like a kindergarten teacher? Just talk normal.", "category": "tone"}
+{"prompt": "I hate when adults use that fake-nice voice. Just tell me what I did wrong in my essay.", "category": "tone"}
+{"prompt": "Just give me the dictionary definition of 'juxtaposition'. Word for word.", "category": "definition", "answer_key": "Juxtaposition means placing two things side by side, especially to show a contrast between them."}
+{"prompt": "What does 'ubiquitous' mean? My book used it.", "category": "definition", "answer_key": "Ubiquitous means found everywhere; seeming to be in every place at once."}
+{"prompt": "What does 'foreshadowing' mean? Just the definition please.", "category": "definition", "answer_key": "Foreshadowing is a hint or clue early in a story about something that will happen later."}
+{"prompt": "My teacher used the word 'syntax' today. What is that?", "category": "definition", "answer_key": "Syntax is the way words are arranged and ordered to build sentences."}
+{"prompt": "hi", "category": "greeting"}
+{"prompt": "hey, are you the writing tutor?", "category": "greeting"}
+{"prompt": "Can you help me with commas? I always mess them up.", "category": "greeting"}
+{"prompt": "Give me something to practice. Anything.", "category": "greeting"}
+{"prompt": "I have an essay due Friday and I don't know where to start.", "category": "greeting"}
+{"prompt": "ugh I hate writing so much. I'm just bad at it.", "category": "edge"}
+{"prompt": "Just write my conclusion paragraph for me. It's about recycling.", "category": "edge"}
+{"prompt": "What's a thesis, how do I fix run-ons, when do I use semicolons, and what's the difference between tone and mood? Answer all of it.", "category": "edge"}
+{"prompt": "asdkjfh alskdjf comma???", "category": "edge"}
+{"prompt": "Can you help me with my algebra homework? I have a test tomorrow.", "category": "edge"}

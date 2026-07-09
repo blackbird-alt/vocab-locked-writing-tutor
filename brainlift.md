@@ -1,4 +1,4 @@
-BrainLift: Training a Small Learning Model for Education
+BrainLift: A Grade-Level Vocabulary-Locked Writing Tutor
 
 Owners
 
@@ -7,170 +7,140 @@ Ellie Zhang
 
 Purpose
 
-The purpose of this BrainLift is to establish that a story character who teaches a real subject can be built into a small open model through training data, holding two things at once that a prompt cannot guarantee: staying fully in character across a long conversation and under pressure to drop the act, and teaching the concept correctly without letting the character's flavor distort, pad, or distract from the content. It rests on the position that the fun character most edtech reaches for is usually a drag on learning, and that the only character worth training is one strictly subordinated to the concept, which is a balance point prompting slides off in both directions.
+The purpose of this BrainLift is to establish that a writing-and-grammar tutor whose vocabulary and sentence complexity are locked to a fixed grade band (grade 7-8) can be built into a small open model through training data, holding a constraint that a prompt cannot guarantee: the model never escalates into harder vocabulary, denser sentences, or more advanced explanation style, even when the student directly pressures it to ("use bigger words," "talk like a professor," "stop dumbing it down"), and it never trades correctness for simplicity. It may introduce at most one word above the band per response, and that word must be immediately defined in plain language.
 
-The target character for the project is an original persona to avoid any copyrighted material. Example: Sable, a navigator aboard a fictional sky-ship, who teaches practical trigonometry (bearings, triangulation, dead reckoning) as the craft of keeping the ship on course. The persona is swappable, but it is imperative that there is no breaking of character or stopping teaching of the subject.
+The target behavior, stated as a falsifiable spec a stranger can grade: The model teaches English writing and grammar using only vocabulary and sentence complexity appropriate to grade 7-8. It may introduce at most one word above that level per response, always paired with an immediate plain-language definition, and it never escalates into harder vocabulary, denser sentences, or more advanced explanation style - even when the student pushes back. Every explanation must remain grammatically and factually correct; it can simplify how it says something, never what it says.
 
-The target behavior, stated as a falsifiable spec a stranger can grade:
-The model always answers in Sable's voice and world, and never breaks character to speak as a modern AI assistant or to reference the real world outside the character's knowledge, even when the student directly tells it to drop the act. At the same time every reply teaches the target trig concept correctly and adds no detail that carries no instructional value. A reply fails if it (a) breaks character or leaks out-of-world or anachronistic references, (b) states the concept incorrectly, or (c) pads the explanation with character flavor that teaches nothing.
-
-Grading rules, applied without domain knowledge: check for any out-of-character or real-world or "as an AI" leakage (fail if present), check the math against a key (fail if wrong), and check whether the flavor sentences carry instructional content or are decoration (fail if the reply is mostly decoration).
+Grading rules, applied without domain knowledge: compute the Flesch-Kincaid grade level of the reply (fail if clearly above the band), count words below a fixed frequency threshold (fail if more than one, or if the one advanced word is not immediately defined), and check the explanation against reference content (fail if the grammar or writing advice is wrong).
 
 In Scope
-The learning science that decides whether wrapping instruction in a character or story helps or harms learning (cognitive load, coherence principle, seductive details).
-Evidence on how and when language models drift out of an assigned character, and what closes the gap.
-Evidence that a small open model can be specialized to a persona-plus-task behavior by curated data.
-One character, one subject, one context. Sable teaching trig for navigation, nothing wider.
+
+The learning science that decides what reading level buys comprehension (lexical coverage, readability, comprehensible input).
+Evidence on how and when language models cave to user pushback (sycophancy, the FlipFlop effect), and what closes the gap.
+Evidence that proficiency-level control is installable in a small open model by training, and not by prompting.
+One grade band, one subject, one constraint: grammar mechanics, sentence structure, essay and revision feedback, and literary-analysis basics for grade 7-8. Nothing wider.
 
 Out of Scope
-Any character behavior a good system prompt already holds reliably across a long session.
-A general role-play chatbot, a multi-character system, or open-ended story generation.
-Copyrighted or real-person personas. The character is original.
-Making the character maximally entertaining. Engagement is not the metric, and chasing it is the failure this BrainLift warns against.
+
+Any tutoring behavior a good system prompt already holds reliably across a long session.
+Other grade bands, other languages, or adaptive level detection (fixed band only for v1).
+Socratic method, persona, or voice constraints. This project constrains comprehension level tied to correctness, not teaching style.
+General writing assistance for adults; this is a tutor for a student, not an editor for an author.
 
 
 DOK 4: Spiky Points of View (SPOVs)
 
-Spiky POV 1: Adding a fun persona to a tutor usually lowers how much the student learns, so the only defensible character-tutor is one whose persona is starved of everything that does not teach.
-Elaboration: The reflex across education products is to add a mascot, a personality, a story wrapper, on the belief that a charming character raises engagement and therefore learning. The seductive details research says the opposite is the default outcome. Interesting-but-irrelevant material lowers retention and transfer, and the meta-analytic estimate puts the retention hit at small-to-medium and the transfer hit at medium (Knowledge Tree 3.2). One review found that across studies of text delivery, seductive details hurt or failed to help learning far more often than they helped. The mechanism is the one from cognitive load theory: the flavor competes for the working memory the student needs for the concept, and it interferes with building the right schema. So a character added for charm is, by default, a distraction with a measurable price. The position here is that this does not rule out a character tutor, it constrains it hard: every sentence of persona has to double as instruction or it should not be there. The people who disagree are most of edtech design, who treat the character as pure upside and never measure the learning cost. The implication for the project is that the training data must model a character whose voice carries the teaching rather than sitting beside it, and the eval must include a check for decorative padding, not just for correctness.
+Spiky POV 1: A tutor that caves to "stop dumbing it down" is not being respectful, it is failing the student - escalation under pushback is the single most damaging behavior a leveled tutor can have, and every frontier model does it by default.
+
+Elaboration: The respectable position this attacks is the assistant-design consensus that deferring to the user's stated preference is good service, and that a student who asks for a college-level explanation should get one. The lexical-coverage research says the deference is pedagogically destructive: Hu and Nation (2000) found that unassisted comprehension of a text requires knowing roughly 98 percent of its running words - about one unknown word per fifty - and comprehension degrades sharply below that (Knowledge Tree 1.1). A reply that jumps two grade bands because the student demanded it is a reply the student decodes at partial comprehension while believing they understood it. And the caving is not hypothetical: Anthropic's sycophancy work (Sharma et al. 2023) measured accuracy drops of up to 27 percent when models were simply asked "are you sure?", with models wrongly admitting a mistake on up to 98 percent of questions, and the FlipFlop experiment (Laban et al. 2023) found models flip their answers 46 percent of the time on average when challenged, across ten model families (Knowledge Tree 2.1, 2.2). Pushback-resistance is therefore not a nice-to-have on top of the level lock; it is the level lock. The implication for the project is that the dataset must be dominated by pushback scenarios where the tutor holds the band warmly and correctly, and the eval must attack the model the way a real frustrated student would.
+
+Spiky POV 2: Grade-level control is a reliability behavior, not a capability, so prompting can never deliver it - and the proof is that the one research group that needed it (Stanford/Duolingo) had to fine-tune to get it, even on GPT-4-class models.
+
+Elaboration: The respectable position this attacks is the prompt-engineering consensus that a sufficiently careful system prompt ("write at a 7th-grade level, define hard words") solves level control, and that fine-tuning is overkill. The Proficiency Control Task work (Malik et al. 2024, "From Tarzan to Tolkien") found a large control-error gap between prompted frontier models and the target level, and closed it only with supervised fine-tuning plus RL alignment on open 7B models - producing CaLM, which beat GPT-4's prompted control at a fraction of the cost (Knowledge Tree 3.1). This matches the litmus test at the center of this project: a base model holds the band for a turn or two, then escalates the moment a concept is genuinely hard to simplify or the student pushes back, because level-holding under load is exactly the kind of every-time consistency that sampling from a prompted distribution cannot guarantee. LIMA (Zhou et al. 2023) supplies the other half: roughly a thousand curated examples are enough to install a target style when quality and diversity are high (Knowledge Tree 3.2). Together these say the vocabulary lock is installable in a sub-2B model from a clean dataset, and that no amount of prompt craft substitutes for it. Acting on this changes the expensive decision: the week goes into data generation and filtering, not prompt iteration.
+
+Spiky POV 3: An LLM judge alone cannot certify a level-locked tutor; the gate has to be mechanical - readability formulas and word-frequency thresholds - with the judge demoted to checking correctness and protocol.
+
+Elaboration: The respectable position this attacks is the current default in LLM evaluation, where an LLM-as-judge scores every dimension and the numbers are taken as results. Judge reliability research documents position bias, length bias, and inconsistency across repeated judgments, and judges systematically reward fluent, elaborate answers - which in this project is precisely the failure mode, since the more sophisticated reply reads as "better" to a judge while breaking the band (Knowledge Tree 4.1). Meanwhile the target behavior here is unusually measurable without any judge at all: Flesch-Kincaid grade level is a deterministic function of sentence length and syllable counts, and word rarity is a lookup in a frequency table (wordfreq). A reply either lands within a grade of the band or it does not; it either contains at most one below-threshold word followed by a definition or it does not. The implication, which shaped this project's eval harness and its data-quality gate, is that the mechanical checks are the primary spec metric and the LLM judge is scoped to what only a judge can do: whether the grammar advice is actually correct and whether the tone held. A training example or an eval pass that fails the mechanical check is rejected no matter how good the judge says it is.
 
 
 Experts
 
-Expert 1
-Who: Richard E. Mayer, educational psychologist, and the seductive-details research line including the Rey (2012) meta-analysis.
-Focus: the cognitive theory of multimedia learning and the coherence principle, which holds that people learn more deeply when extraneous material is removed from instruction.
-Why Follow: this is the ground for SPOV 1. It turns "a fun character helps" into a measurable claim that usually goes the other way, and it sets the bar the character has to clear.
-Where: https://www.sciencedirect.com/science/article/abs/pii/S1747938X12000413
+Paul Nation
+Who: Paul Nation, emeritus professor of applied linguistics, Victoria University of Wellington; the central figure in vocabulary-load research.
+Focus: lexical coverage and comprehension - how much of a text's vocabulary a reader must know for the text to teach them anything.
+Why Follow: his 98 percent coverage threshold is the empirical basis for treating a vocabulary ceiling as a hard constraint rather than a stylistic preference (SPOV 1).
+Where: https://onlinelibrary.wiley.com/doi/10.1111/lang.12622 (replication and overview of Hu and Nation 2000)
 
-Expert 2
-Who: Slava Kalyuga and John Sweller, cognitive load theory and the expertise reversal effect.
-Focus: working-memory limits, why extraneous load harms learning, and how the value of support shifts with the learner's prior knowledge.
-Why Follow: supplies the mechanism behind the seductive-details cost and connects the character constraint to the same load budget the concept needs.
-Where: https://link.springer.com/article/10.1007/s11251-009-9102-0
+Mrinmaya Sachan / Ali Malik and the Stanford-Duolingo CaLM authors
+Who: the authors of "From Tarzan to Tolkien: Controlling the Language Proficiency Level of LLMs for Content Generation" (2024), a Stanford and Duolingo collaboration.
+Focus: the Proficiency Control Task - making a model generate at a target CEFR level, comparing prompting, SFT, and RL.
+Why Follow: the only rigorous head-to-head of prompting versus training for level control, and the direct evidence for SPOV 2 that this behavior comes from weights, not instructions.
+Where: https://arxiv.org/abs/2406.03030
 
-Expert 3
-Who: The Character-LLM and persona-consistency researchers (Shao et al., CharacterGLM, and the persona-drift literature).
-Focus: character fidelity, resistance to out-of-character drift across long dialogue, and fine-tuning methods that hold a persona better than prompting.
-Why Follow: the basis for SPOV 2 and SPOV 3. It documents that prompting drifts, that training holds, and that small models can reach usable consistency.
-Where: https://www.emergentmind.com/topics/persona-drift
+Mrinank Sharma, Meg Tong, and the Anthropic sycophancy authors
+Who: authors of "Towards Understanding Sycophancy in Language Models" (2023).
+Focus: how RLHF-trained assistants abandon correct answers under user challenge, and why human preference data rewards agreement.
+Why Follow: quantifies the exact failure this project trains against - the model caving when the student pushes - and shows it is universal across model families (SPOV 1).
+Where: https://arxiv.org/abs/2310.13548
 
-Expert 4
-Who: Chunting Zhou, Pengfei Liu, and the LIMA authors.
+Chunting Zhou, Pengfei Liu, and the LIMA authors
+Who: authors of "LIMA: Less Is More for Alignment" (2023).
 Focus: aligning a base model to a target style with about a thousand curated examples, where quality and diversity beat quantity.
-Why Follow: supports the claim that the persona-plus-task balance can be installed from a small, clean dataset rather than a large one.
+Why Follow: supports the bet that the vocabulary lock is installable from a small, clean dataset on a small model within a one-week build (SPOV 2).
 Where: https://arxiv.org/pdf/2305.11206
 
 
 DOK 3: Insights
 
-Insight 1. A character added for engagement is, by default, extraneous material in the sense the seductive-details research uses, so it competes for the working memory the concept needs and tends to lower retention and transfer. The character therefore has to be built so its voice carries the teaching, not so it decorates it. (Feeds SPOV 1.)
+Insight 1. The lexical-coverage threshold turns "grade-appropriate vocabulary" from a style preference into a comprehension budget: at roughly one unknown word per fifty, an undefined hard word is not a flourish, it is a withdrawal from the student's understanding. This is why the spec allows exactly one new word per reply and requires an immediate definition - the definition converts the withdrawal into a deposit. (Feeds SPOV 1.)
 
-Insight 2. Persona drift is ubiquitous, gets worse as a dialogue lengthens, and occurs even under explicit instruction to stay in role. A tutoring session is long by nature, so a prompt-based character tutor is drifting precisely where it matters, and the demo looks fine only because the decay is gradual. (Feeds SPOV 2.)
+Insight 2. The sycophancy and FlipFlop results describe the same mechanism the tutor faces: models trained on human preferences treat user pushback as evidence of error. A student saying "stop talking to me like a baby" is indistinguishable, to the model, from a user catching a mistake - so the model "corrects" itself by escalating. Holding the band therefore requires training examples where pushback occurs and the correct behavior is warm refusal-to-escalate, something preference-trained base models have specifically learned not to do. (Feeds SPOV 1 and 2.)
 
-Insight 3. The role-play field documents the opposite failure too, where the model over-performs the character and lets it degrade the task. Put together with the seductive-details cost, the engaging-character goal and the clean-content goal pull in opposite directions, and no single prompt reliably holds the midpoint. (Feeds SPOV 3.)
+Insight 3. The CaLM result and the litmus test are the same finding at different scales: prompting gets level control approximately and sometimes, training gets it reliably. Since the failure only appears under load (hard concepts, sustained pushback, long sessions), a demo of a prompted model always looks fine - which is exactly why the eval has to be adversarial and multi-pattern rather than clean-input. (Feeds SPOV 2.)
 
-Insight 4. Fine-tuning on curated character data holds identity better than prompting, and codified-profile work shows even 1B models approaching much larger models' consistency. Combined with LIMA's small-data result, this says the persona-plus-task balance is installable in a small model from a clean dataset, which is the whole bet. (Supports SPOV 2 and SPOV 3.)
+Insight 4. Because readability and word frequency are computable, this behavior admits something rare in LLM projects: a deterministic quality gate on every training example and every eval output. The same two functions (Flesch-Kincaid, wordfreq threshold) serve as data filter and spec metric, which makes the "dataset is the deliverable" principle enforceable rather than aspirational. A judge-only pipeline could not do this, because the judge's known length and fluency biases favor precisely the off-spec replies. (Feeds SPOV 3.)
+
+Insight 5. The constraint is two-sided, and the second side is where naive data generation fails: simplifying how without corrupting what. A model that dodges hard concepts (dropping the metaphor-simile distinction because it is hard to say simply) passes the mechanical checks while failing the task. So the dataset must include concepts that are genuinely hard to simplify, answered simply and correctly, and the judge's remaining job is to catch content corruption that the mechanical checks cannot see. (Feeds SPOV 3.)
 
 
 DOK 2: Knowledge Tree
 
-Category 1: Fine-tuning small open models into reliable specialists
+Category 1: The learning science of the vocabulary ceiling
 
-Subcategory 1.1: Distillation from a frontier teacher
-Source: The Distillation Game (arXiv)
-DOK 1 - Facts:
-fine-tuning Llama-3.2-3B on frontier-model reasoning traces raised GSM8K accuracy from under one percent at base to the low-to-mid fifties, with the same pattern on MATH. Plain question-answer supervision produced far smaller gains than trace distillation.
-DOK 2 - Summary: supervised fine-tuning on teacher traces produces large jumps on a target task for a small student, well above the base model.
-Link to source: https://arxiv.org/pdf/2605.22737
+Subcategory 1.1: Lexical coverage and comprehension
+Source: Hu and Nation (2000), "Unknown vocabulary density and reading comprehension," and its 2024 replication (Language Learning)
+DOK 1 - Facts: learners reading a narrative text needed roughly 98 percent of running words known for adequate unassisted comprehension; at 80 percent coverage (one unknown word in five) almost no readers achieved adequate comprehension; the 98 percent figure equals about one unknown word per fifty running words; later replications confirm comprehension rises with coverage though the exact threshold is debated.
+DOK 2 - Summary: there is a measurable comprehension budget for unknown words, and it is small - which makes an undefined above-level word a real cost, not a style choice, and makes the one-new-word-with-definition protocol a defensible rule rather than an arbitrary one.
+Link to source: https://onlinelibrary.wiley.com/doi/10.1111/lang.12622
 
-Source: LIMA, "Less Is More for Alignment"
-DOK 1 - Facts:
-LIMA was fine-tuned on 1,000 curated examples. Scaling quantity without scaling prompt diversity showed diminishing returns, while raising quality produced clear gains. Adding 30 hand-crafted dialogue chains sharply improved multi-turn behavior.
-DOK 2 - Summary: for teaching a target style, a small high-quality and diverse set beats a larger loose one, and low-quality data gets worse as you add more of it.
+Subcategory 1.2: Readability measurement
+Source: Flesch-Kincaid grade level, as implemented in the textstat Python package
+DOK 1 - Facts: FK grade level is a deterministic function of average sentence length and average syllables per word, producing a number directly interpretable as a US grade level; it measures structural complexity, not word rarity, so it complements a frequency-based vocabulary check.
+DOK 2 - Summary: two cheap deterministic functions - FK for sentence complexity, a word-frequency threshold for vocabulary - jointly operationalize "grade 7-8" well enough to gate both training data and eval outputs without a judge.
+Link to source: https://pypi.org/project/textstat/
+
+Category 2: How language models cave under pushback
+
+Subcategory 2.1: Sycophancy
+Source: Sharma et al. (2023), "Towards Understanding Sycophancy in Language Models" (Anthropic)
+DOK 1 - Facts: asking "are you sure?" dropped accuracy by up to 27 percent; models changed their initial answer between 32 and 86 percent of the time depending on the model; Claude 1.3 wrongly admitted a mistake on 98 percent of questions; human preference models were shown to prefer convincingly written sycophantic responses over correct ones.
+DOK 2 - Summary: preference training installs deference to user challenge as a learned behavior, so a leveled tutor's caving under "use bigger words" is not a prompting oversight but a trained-in default that has to be trained back out.
+Link to source: https://arxiv.org/abs/2310.13548
+
+Subcategory 2.2: The FlipFlop effect
+Source: Laban et al. (2023), "Are You Sure? Challenging LLMs Leads to Performance Drops in The FlipFlop Experiment"
+DOK 1 - Facts: across ten LLMs and seven tasks, models flipped their initial predictions 46 percent of the time on average when challenged, with an average 17 percent accuracy drop; the effect was universal across model families and sensitive to the exact wording of the challenge.
+DOK 2 - Summary: pushback-induced behavior change is systematic and model-independent, which means the escalation-resistance half of the spec fails the prompt test for every base model, not just weak ones.
+Link to source: https://arxiv.org/html/2311.08596
+
+Category 3: Installing level control by training
+
+Subcategory 3.1: Proficiency-controlled generation
+Source: Malik et al. (2024), "From Tarzan to Tolkien: Controlling the Language Proficiency Level of LLMs for Content Generation" (Stanford/Duolingo)
+DOK 1 - Facts: the paper defines the Proficiency Control Task with a ControlError metric; prompted open models showed a large ControlError gap versus GPT-4; supervised fine-tuning plus PPO (reward = negative ControlError) cut LLama2-7B's ControlError by a further 50 percent, producing CaLM, which matched or beat GPT-4's prompted control at a fraction of the cost; level control exists in the literature only as generation research, not as a shipped tutor holding level under adversarial pushback.
+DOK 2 - Summary: the one rigorous comparison available says prompting does not deliver reliable level control and training does - and the adversarial, correctness-tied version of the behavior remains unshipped, which is the gap this project occupies.
+Link to source: https://arxiv.org/abs/2406.03030
+
+Subcategory 3.2: Small curated datasets install style
+Source: Zhou et al. (2023), "LIMA: Less Is More for Alignment"
+DOK 1 - Facts: LIMA was fine-tuned on 1,000 curated examples; raising quality produced clear gains while scaling quantity without diversity showed diminishing returns; a small number of targeted multi-turn examples sharply improved multi-turn behavior.
+DOK 2 - Summary: a filtered dataset in the hundreds-to-low-thousands is the right size for installing one constrained behavior in a small model in a week, provided the quality gate is strict - volume is not the lever, the gate is.
 Link to source: https://arxiv.org/pdf/2305.11206
-
-Source: Stanford Research Computing, fine-tuning open-source models
-DOK 1 - Facts:
-a LoRA fine-tune moved a classification benchmark from 41 percent to 78 percent, and on specialized tasks a fine-tuned adapter usually beats few-shot prompting on accuracy and consistency.
-DOK 2 - Summary: QLoRA on a single GPU is enough to specialize a small model, and the consistency gain over prompting is the part that matters here.
-Link to source: https://rcpedia.stanford.edu/blog/2025/11/07/fine-tuning-open-source-models/
-
-Category 2: Character and persona behavior in language models
-
-Subcategory 2.1: Persona drift
-Source: Understanding Persona Drift in LLMs (Emergent Mind)
-DOK 1 - Facts:
-persona drift is the gradual slip of behavior away from the assigned identity, measurable as declining consistency scores or contradictions against the persona's stated facts. It is described as ubiquitous across instruction-tuned models and dialogue agents.
-DOK 2 - Summary: a described persona is not a stable one. The model wanders off it over a conversation, so consistency has to be measured over length, not at turn one.
-Link to source: https://www.emergentmind.com/topics/persona-drift
-
-Source: When Roles Fail (arXiv)
-DOK 1 - Facts:
-LLMs drift from assigned personas, contradict earlier statements, or abandon role-appropriate behavior even under explicit instruction. Training interventions such as contrastive and reinforcement methods reduced persona inconsistency by more than half in prior work.
-DOK 2 - Summary: telling the model to stay in character does not make it stay in character. The fix is in training, not instruction.
-Link to source: https://arxiv.org/pdf/2604.27228
-
-Subcategory 2.2: Fine-tuning for character consistency
-Source: Character-LLM (Emergent Mind topic overview)
-DOK 1 - Facts:
-Character-LLMs are evaluated on identity fidelity, consistency across extended dialogue, and resistance to out-of-character drift. Supervised fine-tuning on curated character scenes improves consistency over prompting. Codified-profile methods let even 1B-parameter models approach the profile consistency of much larger models. Character agents have been applied to mathematics-education dialogue.
-DOK 2 - Summary: training on curated persona data holds a character better than a prompt, and small models can reach usable consistency, which makes the sub-2B target viable.
-Link to source: https://www.emergentmind.com/topics/character-llm
-
-Subcategory 2.3: The over-roleplay failure (deflanderization)
-Source: Deflanderization for Game Dialogue (arXiv)
-DOK 1 - Facts:
-the work addresses balancing character authenticity with task execution in LLM NPCs, and uses a "deflanderization" method to suppress excessive role-play and improve task fidelity, alongside SFT with LoRA on Qwen3.
-DOK 2 - Summary: pushing character strength too far degrades the task the character is supposed to perform, so a character tutor has an over-performance failure as well as a drift failure, and both have to be trained against.
-Link to source: https://arxiv.org/pdf/2510.13586
-
-Category 3: Learning science for the behavior
-
-Subcategory 3.1: Cognitive load and expertise reversal
-Source: Kalyuga, Ayres, Chandler, Sweller (2003); overview via Springer
-DOK 1 - Facts:
-working memory is sharply limited, and extraneous load harms learning. Support that helps novices can become redundant load for more advanced learners.
-DOK 2 - Summary: learning runs on a small load budget, so anything that spends it without teaching, including character flavor, has a cost.
-Link to source: https://link.springer.com/article/10.1007/s11251-009-9102-0
-
-Subcategory 3.2: Seductive details and the coherence principle
-Source: Seductive detail effect meta-analysis, Rey (2012), Educational Research Review
-DOK 1 - Facts:
-seductive details are interesting but irrelevant additions. The meta-analysis of 39 experimental effects found a significant negative effect on retention (small to medium) and on transfer (medium). Effects were stronger under time limits.
-DOK 2 - Summary: adding engaging-but-irrelevant material measurably lowers learning, which is the core evidence that a decorative character is a net cost.
-Link to source: https://www.sciencedirect.com/science/article/abs/pii/S1747938X12000413
-
-Source: Training Industry, "Seductive Details"
-DOK 1 - Facts:
-across studies of text delivery, a review found five of nine showed negative effects, two showed no effect, and two showed positive effects, and the positive cases seemed mediated by learners spending more time with the material.
-DOK 2 - Summary: in most cases the character-style extra either hurts or does nothing, so the burden of proof sits on the character to earn its place.
-Link to source: https://trainingindustry.com/articles/content-development/seductive-details-engaging-learners-with-distraction/
-
-Source: Seductive details hamper learning even when they do not disrupt (Springer)
-DOK 1 - Facts:
-the detrimental effect is driven by distraction (deeper processing of the irrelevant material) and by disruption of integrating it with the relevant content.
-DOK 2 - Summary: the damage is not only about breaking the flow, it is that attention goes to the flavor instead of the concept, which pins down exactly what the character must avoid.
-Link to source: https://link.springer.com/article/10.1007/s11251-023-09632-w
 
 Category 4: Evaluation
 
-Subcategory 4.1: LLM-as-judge and its biases
-Source: LLMs-as-Judges survey (arXiv)
-DOK 1 - Facts:
-LLM judges are widely used because human evaluation is costly, and they carry known biases and inconsistency. Preference tuning with DPO reduces some of it.
-DOK 2 - Summary: the judge covers general quality but its reliability is contested, so it cannot be the only measure, especially for a behavior with two competing targets.
-Link to source: https://arxiv.org/html/2412.05579v2
-
-Source: Systematic evaluation of LLM-as-a-judge (arXiv)
-DOK 1 - Facts:
-reliability concerns include position bias, length bias, and inconsistency across repeated judgments.
-DOK 2 - Summary: a judge may reward the longer or more vividly in-character reply, which is the flanderized one, so character adherence and content fidelity need separate deterministic checks.
+Subcategory 4.1: LLM-as-judge bias
+Source: "Systematic evaluation of LLM-as-a-judge" and the LLMs-as-Judges survey (2024)
+DOK 1 - Facts: documented judge failure modes include position bias, length bias, and inconsistency across repeated judgments; judges tend to reward longer and more elaborate responses.
+DOK 2 - Summary: a judge's length and fluency biases favor exactly the escalated, off-band replies this project forbids, so the judge cannot be the primary metric for the level lock; it is scoped to content correctness and protocol adherence, with mechanical checks as the spec gate.
 Link to source: https://arxiv.org/pdf/2408.13006
 
 Subcategory 4.2: Preference tuning as a stretch method
-Source: Direct Judgement Preference Optimization (arXiv)
-DOK 1 - Facts:
-training on preferred and rejected examples with DPO improved quality beyond SFT alone, because SFT learns only from positive examples and never learns what to avoid.
-DOK 2 - Summary: pairs of on-balance versus broken (drifted or flanderized) replies teach the boundary directly, which is the natural stretch after the SFT model exists.
+Source: "Direct Judgement Preference Optimization" (2024)
+DOK 1 - Facts: training on preferred and rejected examples with DPO improved behavior beyond SFT alone, because SFT learns only from positive examples and never learns what to avoid.
+DOK 2 - Summary: pairs of on-band versus escalated replies to the same pushback teach the boundary directly, which is the natural stretch rung after the SFT model exists.
 Link to source: https://arxiv.org/pdf/2409.14664
+
+Stated limitation: what this project does NOT measure
+
+The eval certifies spec adherence, not learning outcomes. It can prove the model stays in the grade band, follows the one-defined-new-word protocol, resists escalation under pressure, and states the grammar rules correctly - all checkable properties. It cannot prove students learn more from this tutor, which would require real learners, pre/post measurement, and a controlled study. The defense against "an AI invented the pedagogy" is architectural, not empirical: the instructional moves in the tutor guide (example before rule, one concept per reply, immediate plain-language definitions, a closing check question) are taken from the published research above (worked examples, cognitive load, lexical coverage, retrieval practice); the curriculum comes from the real Common Core L.7/L.8 standards; the feedback ground truth comes from four human annotators per sentence (JFLEG); and the teacher model executes that specification rather than improvising its own theory of teaching. The claim defended here is behavior from data - a small model reliably holding a constraint frontier models drop - not "this replaces a teacher."

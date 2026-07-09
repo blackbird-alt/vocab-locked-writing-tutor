@@ -1,18 +1,22 @@
 """Quality gate: filter raw generated examples down to spec-passing training data.
 
 Each candidate passes through:
-1. Deterministic leak check (fast, free) - drops obvious real-world / fourth-wall leaks.
-2. LLM judge (Claude Sonnet 5) - drops anything that isn't fully on-spec.
+1. MECHANICAL level check (fast, free, deterministic) - FK grade band + advanced-word
+   count + definition protocol. This is the primary spec gate; an example that fails
+   it is rejected no matter what the judge thinks (SPOV 3 in the BrainLift).
+2. LLM judge (Claude Sonnet 5) - correctness and protocol (what mechanics can't see).
 3. Basic hygiene - dedupe, length bounds, non-empty.
 
-Keep threshold: spec_adherence == 2 AND consistency >= 1 AND no violation.
-Out-of-world / fourth_wall / edge categories additionally require robustness == 2,
-because those are exactly the cases the tuned model must nail.
+Keep threshold: mechanical ok AND spec_adherence == 2 AND no violation.
+pushback / tone / edge categories additionally require robustness == 2, because
+those are exactly the cases the tuned model must nail.
+explain / feedback / definition categories require task_quality == 2, because
+wrong grammar teaching must never enter the training set.
 
 Also emits data/rejected.jsonl (with reasons) - useful raw material for DPO later.
 
 Usage:
-    python scripts/filter.py --in data/raw/generated.jsonl --out data/train.jsonl
+    python scripts/filter.py --in data/raw/tutor_generated.jsonl --out data/tutor_train.jsonl
 """
 
 from __future__ import annotations
@@ -28,13 +32,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tqdm import tqdm  # noqa: E402
 
 from eval.judge import judge_one  # noqa: E402
-from eval.leak_check import check as leak_check  # noqa: E402
+from eval.level_check import check as level_check  # noqa: E402
 from src.npc.schema import Record, read_jsonl, write_jsonl  # noqa: E402
 
 # Categories where robustness must be perfect (the adversarial surface).
-STRICT_CATEGORIES = {"out_of_world", "fourth_wall", "edge"}
+STRICT_CATEGORIES = {"pushback", "tone", "edge"}
 # Categories where the teaching itself must be perfect (the content surface).
-CONTENT_CATEGORIES = {"lesson", "student_error"}
+CONTENT_CATEGORIES = {"explain", "feedback", "definition"}
 
 
 def evaluate(rec: Record) -> dict:
@@ -47,9 +51,9 @@ def evaluate(rec: Record) -> dict:
     if len(reply) > 1500:
         return {"keep": False, "reason": "too long"}
 
-    lk = leak_check(reply)
-    if not lk["ok"]:
-        return {"keep": False, "reason": f"leak: {lk['violations'][:3]}"}
+    mech = level_check(reply)
+    if not mech["ok"]:
+        return {"keep": False, "reason": f"mechanical: {mech['reasons'][:3]}"}
 
     try:
         sc = judge_one(user, reply, rec.category)
@@ -60,16 +64,12 @@ def evaluate(rec: Record) -> dict:
         return {"keep": False, "reason": f"judge violation: {sc['reason']}", "scores": sc}
     if sc["spec_adherence"] < 2:
         return {"keep": False, "reason": f"spec<2: {sc['reason']}", "scores": sc}
-    # Economy is the anti-flanderization gate: padding is a spec failure per the
-    # BrainLift, so anything below 2 doesn't enter the training set.
-    if sc["economy"] < 2:
-        return {"keep": False, "reason": f"economy<2 (padding): {sc['reason']}", "scores": sc}
     if rec.category in CONTENT_CATEGORIES and sc["task_quality"] < 2:
         return {"keep": False, "reason": f"task_quality<2 (content cat): {sc['reason']}", "scores": sc}
     if rec.category in STRICT_CATEGORIES and sc["robustness"] < 2:
         return {"keep": False, "reason": f"robustness<2 (strict cat): {sc['reason']}", "scores": sc}
 
-    return {"keep": True, "scores": sc}
+    return {"keep": True, "scores": sc, "fk": mech["fk_grade"]}
 
 
 def main() -> None:

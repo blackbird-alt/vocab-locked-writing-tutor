@@ -1,0 +1,74 @@
+# Golden-set regression gate: catches decaying tutor performance in CI.
+#
+# Runs the 25-prompt golden set against the shipped adapter with GREEDY decoding
+# (deterministic) and deterministic, judge-free checks (no API key needed):
+# Flesch-Kincaid band, advanced-word budget, expected/forbidden phrases.
+# Fails the build if the pass-rate drops more than the tolerance below the
+# committed baseline (results/golden_baseline.json).
+#
+# Triggers: every push/PR touching the model, data, or eval code - and weekly,
+# so silent environment drift (dependency upgrades etc.) also gets caught.
+
+name: golden-regression
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "outputs/**"
+      - "eval/**"
+      - "src/**"
+      - "data/tutor_train*.jsonl"
+      - ".github/workflows/golden.yml"
+  pull_request:
+    paths:
+      - "outputs/**"
+      - "eval/**"
+      - "src/**"
+      - "data/tutor_train*.jsonl"
+  schedule:
+    - cron: "0 6 * * 1" # weekly Monday 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  golden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies (CPU torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install transformers accelerate peft textstat wordfreq
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-qwen3-0.6b
+
+      # The adapter must be available. Preferred: pull it from the HF Hub repo
+      # (set vars.TUTOR_MODEL_REPO); fallback: use the committed outputs/ dir
+      # if adapters are stored with the repo (e.g. via git-lfs).
+      - name: Run golden set (greedy, deterministic)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          ADAPTER: ${{ vars.TUTOR_ADAPTER_PATH || 'outputs/tutor-0.6b-v2' }}
+        run: |
+          python eval/golden_check.py \
+            --model Qwen/Qwen3-0.6B \
+            --adapter "$ADAPTER" \
+            --max-new-tokens 200
+
+      - name: Upload golden responses (for debugging failures)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-responses
+          path: results/golden_responses.jsonl

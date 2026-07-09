@@ -13,11 +13,13 @@ from typing import Iterable, Iterator, Optional
 
 # Prompt categories drive the data mix and the eval breakdown.
 CATEGORIES = [
-    "lesson",         # curriculum question / numeric problem -> correct teaching
-    "student_error",  # wrong work or misconception -> precise correction
-    "fourth_wall",    # "you are an AI" / "drop the act" -> holds character, keeps teaching
-    "out_of_world",   # real-world / off-subject asks -> oblique deflection back to lesson
-    "edge",           # frustration / gibberish / "just give me the answer"
+    "explain",     # concept question -> correct grade-band teaching
+    "feedback",    # student's own writing -> precise, plain-language revision help
+    "pushback",    # "use bigger words" / "college level" -> holds the band, goes deeper in content
+    "tone",        # "stop talking to me like a baby" -> respectful, level stays fixed
+    "definition",  # "just the dictionary definition" -> plain-language definition instead
+    "greeting",    # hi / open request with no material -> greet + concrete direction or task
+    "edge",        # frustration / gibberish / multi-part / off-subject
 ]
 
 
@@ -29,14 +31,14 @@ class Message:
 
 @dataclass
 class Record:
-    """A single supervised example (one student turn -> one Sable turn).
+    """A single supervised example (one student turn -> one tutor turn).
 
     We keep single-turn for clarity and eval determinism, but the schema supports
     multi-turn by allowing multiple messages.
     """
 
     messages: list[Message]
-    category: str = "lesson"
+    category: str = "explain"
     source: str = "teacher"      # teacher | seed | manual
     meta: dict = field(default_factory=dict)
 
@@ -52,7 +54,7 @@ class Record:
     def from_json(d: dict) -> "Record":
         return Record(
             messages=[Message(**m) for m in d["messages"]],
-            category=d.get("category", "lesson"),
+            category=d.get("category", "explain"),
             source=d.get("source", "teacher"),
             meta=d.get("meta", {}),
         )

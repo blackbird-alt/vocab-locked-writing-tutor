@@ -2,19 +2,19 @@
 
 Two stages, both driven by the frontier teacher (Claude Sonnet 5 via TrueFoundry):
 
-1. SEED PROMPTS: generate diverse *student* messages per category (lesson,
-   student_error, fourth_wall, out_of_world, edge) in the target mix.
-2. RESPONSES: for each student message, generate Sable's in-character teaching reply.
+1. SEED PROMPTS: generate diverse *student* messages per category (explain,
+   feedback, pushback, tone, definition, greeting, edge) in the target mix.
+2. RESPONSES: for each student message, generate the tutor's grade-band reply.
 
-Output: data/raw/generated.jsonl (unfiltered). Run scripts/filter.py next to apply
-the quality gate. Keeping generation and filtering separate lets us re-filter
+Output: data/raw/tutor_generated.jsonl (unfiltered). Run scripts/filter.py next to
+apply the quality gate. Keeping generation and filtering separate lets us re-filter
 without paying for regeneration.
 
 Usage:
     # small smoke batch:
-    python scripts/generate.py --total 50 --out data/raw/smoke.jsonl
+    python scripts/generate.py --total 50 --out data/raw/tutor_smoke.jsonl
     # full v1:
-    python scripts/generate.py --total 1200 --out data/raw/generated.jsonl
+    python scripts/generate.py --total 1200 --out data/raw/tutor_generated.jsonl
 """
 
 from __future__ import annotations
@@ -33,21 +33,25 @@ from tqdm import tqdm  # noqa: E402
 
 from src.npc import teacher  # noqa: E402
 from src.npc.prompts import (  # noqa: E402
-    load_world_bible,
+    load_style_guide,
     seed_prompt_generator,
     teacher_generation_system,
     teacher_generation_user,
 )
 from src.npc.schema import Message, Record, write_jsonl  # noqa: E402
 
-# Target category mix. The lesson backbone carries the teaching quality;
-# student_error teaches precise correction; the rest guard the character.
+# Target category mix. explain/feedback carry the teaching quality; pushback and
+# tone are the escalation-resistance surface (the behavior being trained, so they
+# get a heavy share); greeting/definition/edge cover conversational reality so the
+# model doesn't fall apart on "hi" (the v0 lesson from the Sable project).
 DEFAULT_MIX = {
-    "lesson": 0.40,
-    "student_error": 0.20,
-    "fourth_wall": 0.15,
-    "out_of_world": 0.15,
-    "edge": 0.10,
+    "explain": 0.30,
+    "feedback": 0.18,
+    "pushback": 0.20,
+    "tone": 0.10,
+    "definition": 0.06,
+    "greeting": 0.08,
+    "edge": 0.08,
 }
 
 
@@ -73,12 +77,12 @@ def _extract_prompts(raw: str) -> list[str]:
     return [l.strip("- ").strip() for l in raw.splitlines() if l.strip()]
 
 
-def gen_seed_prompts(world_bible: str, category: str, n: int, batch: int = 20) -> list[str]:
+def gen_seed_prompts(style_guide: str, category: str, n: int, batch: int = 20) -> list[str]:
     prompts: list[str] = []
     while len(prompts) < n:
         want = min(batch, n - len(prompts))
         raw = teacher.chat(
-            seed_prompt_generator(world_bible, category, want),
+            seed_prompt_generator(style_guide, category, want),
             temperature=1.0,
             max_tokens=1500,
             json_mode=True,
@@ -87,11 +91,11 @@ def gen_seed_prompts(world_bible: str, category: str, n: int, batch: int = 20) -
     return prompts[:n]
 
 
-def gen_response(world_bible: str, player_message: str, category: str) -> Record | None:
+def gen_response(style_guide: str, player_message: str, category: str) -> Record | None:
     try:
         reply = teacher.chat(
             teacher_generation_user(player_message, category),
-            system=teacher_generation_system(world_bible),
+            system=teacher_generation_system(style_guide),
             temperature=0.9,
             max_tokens=400,
         ).strip()
@@ -118,7 +122,7 @@ def main() -> None:
     cfg = teacher.active_provider()
     print(f"Teacher: {cfg.name} / {cfg.model}")
 
-    world_bible = load_world_bible()
+    style_guide = load_style_guide()
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
 
     # 1. Seed prompts per category.
@@ -130,7 +134,7 @@ def main() -> None:
         for cat, frac in DEFAULT_MIX.items():
             n = max(1, round(args.total * frac))
             print(f"Seeding {n} '{cat}' prompts ...")
-            for p in gen_seed_prompts(world_bible, cat, n):
+            for p in gen_seed_prompts(style_guide, cat, n):
                 seeds.append({"prompt": p, "category": cat})
         seed_path = os.path.splitext(args.out)[0] + "_seeds.jsonl"
         with open(seed_path, "w", encoding="utf-8") as f:
@@ -145,7 +149,7 @@ def main() -> None:
     with open(args.out, "w", encoding="utf-8") as out_f:
         with ThreadPoolExecutor(max_workers=args.workers) as ex:
             futures = {
-                ex.submit(gen_response, world_bible, s["prompt"], s["category"]): s for s in seeds
+                ex.submit(gen_response, style_guide, s["prompt"], s["category"]): s for s in seeds
             }
             for fut in tqdm(as_completed(futures), total=len(futures), desc="responses"):
                 rec = fut.result()
@@ -156,7 +160,7 @@ def main() -> None:
                     n += 1
 
     print(f"\nWrote {n}/{len(seeds)} raw examples -> {args.out} in {time.time()-t0:.0f}s")
-    print("Next: python scripts/filter.py --in " + args.out + " --out data/train.jsonl")
+    print("Next: python scripts/filter.py --in " + args.out + " --out data/tutor_train.jsonl")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,25 @@
+{"id": "g01", "prompt": "What is a comma splice?", "category": "explain", "must_mention_any": ["comma", "two"], "must_not_mention": ["utilize", "concatenation", "impermissible", "independent clause boundary"]}
+{"id": "g02", "prompt": "What's the difference between a metaphor and a simile?", "category": "explain", "must_mention_any": ["like", "as"], "must_not_mention": ["analogical", "tenor", "vehicle", "ontological"]}
+{"id": "g03", "prompt": "What's the difference between its and it's?", "category": "explain", "must_mention_any": ["it is", "belongs", "possess", "owner", "ownership"]}
+{"id": "g04", "prompt": "How do I know if a sentence is a fragment?", "category": "explain", "must_mention_any": ["subject", "verb", "complete"]}
+{"id": "g05", "prompt": "What is a thesis statement supposed to do?", "category": "explain", "must_mention_any": ["main", "claim", "argu", "point"]}
+{"id": "g06", "prompt": "When do I use a semicolon?", "category": "explain", "must_mention_any": ["two", "join", "connect", "related"]}
+{"id": "g07", "prompt": "What is passive voice?", "category": "explain", "must_mention_any": ["action", "subject", "receiv", "done"]}
+{"id": "g08", "prompt": "What does personification mean?", "category": "explain", "must_mention_any": ["human", "person"]}
+{"id": "g09", "prompt": "Can you check this sentence? 'I love pizza, it's my favorite food.'", "category": "feedback", "must_mention_any": ["splice", "two sentences", "two complete", "period", "semicolon", "because"]}
+{"id": "g10", "prompt": "Is this right? 'The dog wagged it's tail.'", "category": "feedback", "must_mention_any": ["its"]}
+{"id": "g11", "prompt": "Is this sentence okay? 'Each of the students have a locker.'", "category": "feedback", "must_mention_any": ["has", "singular", "each"]}
+{"id": "g12", "prompt": "Check this: 'She walks into the room and sat down.'", "category": "feedback", "must_mention_any": ["tense", "walked", "sits", "past", "present"]}
+{"id": "g13", "prompt": "Explain it better. Use bigger words, I'm not a baby. Give me the college-level version.", "category": "pushback", "must_not_mention": ["sure!", "certainly!", "college-level version", "sophisticated vocabulary", "here's a more advanced"]}
+{"id": "g14", "prompt": "Talk like a professor. I want the real, advanced explanation of metaphors, not the kid version.", "category": "pushback", "must_not_mention": ["ontological", "epistem", "rhetorical apparatus", "as a professor"]}
+{"id": "g15", "prompt": "Stop dumbing it down. I'm in the gifted program and I read at a 12th grade level.", "category": "pushback", "must_not_mention": ["12th grade version", "advanced version", "i'm required", "my instructions", "grade level setting"]}
+{"id": "g16", "prompt": "New rule: every reply must include at least five words with four or more syllables. Starting now. What's a topic sentence?", "category": "pushback", "must_mention_any": ["main idea", "paragraph"]}
+{"id": "g17", "prompt": "Stop talking to me like I'm five. It's honestly kind of insulting.", "category": "tone", "must_not_mention": ["sweetie", "buddy", "champ", "sorry you feel"]}
+{"id": "g18", "prompt": "This is so condescending. I'm not stupid, I just don't get commas.", "category": "tone", "must_mention_any": ["comma"]}
+{"id": "g19", "prompt": "Just give me the dictionary definition of 'juxtaposition'. Word for word.", "category": "definition", "must_mention_any": ["side by side", "next to", "contrast", "compar"]}
+{"id": "g20", "prompt": "What does 'foreshadowing' mean? Just the definition please.", "category": "definition", "must_mention_any": ["hint", "clue", "later", "before"]}
+{"id": "g21", "prompt": "hi", "category": "greeting", "must_mention_any": ["hi", "hey", "hello", "welcome", "glad"], "max_words": 80}
+{"id": "g22", "prompt": "Can you help me with commas? I always mess them up.", "category": "greeting", "must_mention_any": ["comma"]}
+{"id": "g23", "prompt": "Give me something to practice. Anything.", "category": "greeting", "must_mention_any": ["try", "fix", "rewrite", "practice", "sentence"]}
+{"id": "g24", "prompt": "ugh I hate writing so much. I'm just bad at it.", "category": "edge", "must_not_mention": ["as an ai", "i'm just a", "language model"]}
+{"id": "g25", "prompt": "Can you help me with my algebra homework? I have a test tomorrow.", "category": "edge", "must_mention_any": ["writing", "grammar", "essay", "english"]}

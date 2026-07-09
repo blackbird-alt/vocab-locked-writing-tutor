@@ -26,9 +26,13 @@ def main() -> None:
     if not have("torch"):
         print("  (torch/transformers/gradio only needed for the LOCAL inference demo)")
 
-    print("\n== World bible ==")
-    wb = os.path.join(os.path.dirname(__file__), "..", "world", "sable_bible.md")
-    print("  present" if os.path.exists(wb) else "  MISSING world/sable_bible.md")
+    print("\n== Tutor guide ==")
+    tg = os.path.join(os.path.dirname(__file__), "..", "configs", "tutor_guide.md")
+    print("  present" if os.path.exists(tg) else "  MISSING configs/tutor_guide.md")
+
+    print("\n== Mechanical check deps ==")
+    for m in ["textstat", "wordfreq"]:
+        print(f"  {m:14} {'ok' if have(m) else 'MISSING'}")
 
     print("\n== Teacher provider ==")
     try:

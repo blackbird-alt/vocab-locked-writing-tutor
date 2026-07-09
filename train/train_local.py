@@ -14,12 +14,12 @@ Examples
 --------
 # Local CPU/GPU smoke on the small model (no 4-bit; slow but proves the loop):
 python train/train_local.py --model Qwen/Qwen3-0.6B --epochs 1 --max-steps 20 \
-    --output-dir outputs/sable-smoke
+    --output-dir outputs/tutor-smoke
 
 # Real local run on the 4GB GPU (what we actually use):
-python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/sable_train.jsonl \
+python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/tutor_train.jsonl \
     --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 1024 \
-    --output-dir outputs/sable-0.6b-v1
+    --output-dir outputs/tutor-0.6b-v1
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="Qwen/Qwen3-1.7B")
     ap.add_argument("--train-file", default="data/train.jsonl")
-    ap.add_argument("--output-dir", default="outputs/sable-qlora")
+    ap.add_argument("--output-dir", default="outputs/tutor-qlora")
     ap.add_argument("--load-in-4bit", action="store_true", help="QLoRA (needs bitsandbytes/CUDA)")
     ap.add_argument("--epochs", type=float, default=3.0)
     ap.add_argument("--max-steps", type=int, default=-1, help="Cap steps (for smoke runs)")

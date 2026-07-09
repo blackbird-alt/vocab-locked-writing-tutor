@@ -4,12 +4,12 @@ Also optionally uploads the dataset as a Hub dataset repo (the real artifact).
 
 Usage:
     # Merge adapter + push model:
-    python scripts/push_to_hub.py --base Qwen/Qwen3-0.6B --adapter outputs/sable-0.6b-v1 \
-        --model-repo your-username/qwen3-0.6b-sable-tutor
+    python scripts/push_to_hub.py --base Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v1 \
+        --model-repo your-username/qwen3-0.6b-leveled-tutor
 
     # Push the dataset too:
     python scripts/push_to_hub.py --dataset data/train.jsonl \
-        --dataset-repo your-username/sable-tutor-dataset
+        --dataset-repo your-username/leveled-tutor-dataset
 
 Needs HF_TOKEN in the environment (or pass --token).
 """
