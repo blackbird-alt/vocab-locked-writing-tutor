@@ -73,10 +73,13 @@ class NpcModel:
 
         self.model.eval()
 
-    def _build_inputs(self, user: str, system: Optional[str], enable_thinking: bool):
+    def _build_inputs(self, user: str, system: Optional[str], enable_thinking: bool,
+                      history: Optional[list] = None):
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
+        if history:
+            messages.extend(history)
         messages.append({"role": "user", "content": user})
 
         # Qwen3 chat template supports enable_thinking; guard for other models.
@@ -93,11 +96,17 @@ class NpcModel:
             )
         return self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
-    def generate(self, user: str, system: Optional[str] = None, cfg: Optional[GenConfig] = None) -> str:
+    def generate(self, user: str, system: Optional[str] = None, cfg: Optional[GenConfig] = None,
+                 history: Optional[list] = None) -> str:
+        """Generate a reply. `history` is prior chat turns as
+        [{"role": "user"|"assistant", "content": str}, ...] - REQUIRED for the
+        model to answer follow-ups like "wait, was I right?"; without it every
+        message arrives as the first message of a new conversation.
+        """
         import torch
 
         cfg = cfg or GenConfig()
-        inputs = self._build_inputs(user, system, cfg.enable_thinking)
+        inputs = self._build_inputs(user, system, cfg.enable_thinking, history)
         with torch.no_grad():
             out = self.model.generate(
                 **inputs,

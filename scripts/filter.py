@@ -51,7 +51,7 @@ def evaluate(rec: Record) -> dict:
     if len(reply) > 1500:
         return {"keep": False, "reason": "too long"}
 
-    mech = level_check(reply)
+    mech = level_check(reply, student_text=user)
     if not mech["ok"]:
         return {"keep": False, "reason": f"mechanical: {mech['reasons'][:3]}"}
 

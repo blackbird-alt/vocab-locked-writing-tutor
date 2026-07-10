@@ -20,6 +20,8 @@ CATEGORIES = [
     "definition",  # "just the dictionary definition" -> plain-language definition instead
     "greeting",    # hi / open request with no material -> greet + concrete direction or task
     "edge",        # frustration / gibberish / multi-part / off-subject
+    "meta",        # questions about the tutor itself (what it teaches, what grade level,
+                   # "I'm a 7th grader, give me a problem at my level")
 ]
 
 

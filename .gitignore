@@ -17,13 +17,14 @@ data/raw/*.jsonl
 # Model outputs / checkpoints (except the shipped adapter, which the CI golden
 # gate loads from the repo)
 outputs/*
-!outputs/tutor-0.6b-v2
-outputs/tutor-0.6b-v2/checkpoint-*
+!outputs/tutor-0.6b-v3
+outputs/tutor-0.6b-v3/checkpoint-*
 adapters/
 merged/
 *.gguf
 *.safetensors
-!outputs/tutor-0.6b-v2/*.safetensors
+!outputs/tutor-0.6b-v3/*.safetensors
+!outputs/tutor-0.6b-v3/**/*.safetensors
 
 # Results are committed, but ignore scratch
 results/scratch/

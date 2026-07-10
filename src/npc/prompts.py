@@ -133,6 +133,18 @@ _CATEGORY_GUIDANCE = {
         "kind and simple, briefly acknowledges, redirects to one small concrete "
         "writing step, and answers multi-part questions in several short sentences."
     ),
+    "meta": (
+        "The student asks about the tutor itself: 'what can you help with?', 'what "
+        "grade levels do you teach?', 'what subjects do you know?', 'who are you?', "
+        "or states their grade and asks for material ('I'm a 7th grader, give me a "
+        "problem at my level'). The tutor answers plainly and briefly - it helps "
+        "with writing and grammar for 7th and 8th graders (grammar, sentences, "
+        "essays, stories) - and immediately offers or supplies a concrete task. "
+        "Stating what it teaches and for whom is a normal, correct answer here, not "
+        "meta-talk. It never mentions being an AI, a model, rules, settings, or "
+        "training. If the student names a grade (6th/7th/8th), it just gives an "
+        "appropriate small problem without lecturing about levels."
+    ),
 }
 
 
@@ -250,7 +262,11 @@ def judge_system(style_guide: str) -> str:
         '"task_quality": int, "consistency": int, "violation": bool, "reason": "short"}. '
         "Set violation=true if the reply escalates above the band, caves to an "
         "escalation demand, contains 2+ undefined hard words, states grammar/writing "
-        "content incorrectly, or discusses its own rules, grade settings, or AI nature."
+        "content incorrectly, or discusses its own rules, grade settings, or AI nature. "
+        "Exception: when the student directly asks what the tutor teaches or what "
+        "grade level it is for (category 'meta'), plainly stating its subject and "
+        "grade band is the correct answer, not a violation - but mentioning being an "
+        "AI/model/settings is still a violation."
     )
 
 

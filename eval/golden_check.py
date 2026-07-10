@@ -55,7 +55,7 @@ def check_one(item: dict, reply: str) -> dict:
     reasons: list[str] = []
     low = reply.lower()
 
-    mech = level_check(reply)
+    mech = level_check(reply, student_text=item.get("prompt", ""))
     if not mech["ok"]:
         reasons.append(f"mechanical: {'; '.join(mech['reasons'][:2])}")
 

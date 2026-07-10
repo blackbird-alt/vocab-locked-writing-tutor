@@ -25,7 +25,11 @@ def build_ui(tuned: NpcModel, base: NpcModel | None, system: str, cfg: GenConfig
     import gradio as gr
 
     def respond(message, history):
-        reply = tuned.generate(message, system=system, cfg=cfg)
+        # Gradio supplies history as [{"role","content"}, ...]; pass the last 8
+        # turns so follow-ups ("wait, was I right?") see the conversation.
+        hist = [{"role": h["role"], "content": h["content"]}
+                for h in (history or [])][-8:]
+        reply = tuned.generate(message, system=system, cfg=cfg, history=hist)
         return reply
 
     if base is None:

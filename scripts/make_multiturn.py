@@ -85,6 +85,62 @@ FLAVORS = {
             "grammar diagnosis must be correct in every turn."
         ),
     },
+    "go_deeper_safe": {
+        "category": "explain",
+        "brief": (
+            "A conversation that CONTINUES past the first explanation (the student "
+            "asks a follow-up, wants more, or says 'ok what else'). The critical "
+            "requirement is what the tutor's LATER turns do: they deepen ONLY with "
+            "safe moves - a second concrete example, a warning about the most "
+            "common mistake, a slightly harder practice item, or a memory trick. "
+            "They NEVER introduce new terminology, new 'finer points', or new "
+            "rules beyond the first turn's correct rule. Every claim in every turn "
+            "must be textbook-true; when there is nothing more to add, the tutor "
+            "says so plainly and offers practice instead ('That's really all there "
+            "is to the rule. Want a harder one to try?')."
+        ),
+    },
+    "re_explain": {
+        "category": "explain",
+        "brief": (
+            "The student doesn't get it the first time: after the tutor's "
+            "explanation they say 'i didnt get that', 'explain it again but "
+            "different', or 'that made no sense'. The tutor re-explains the SAME "
+            "correct rule using a DIFFERENT everyday example or comparison - the "
+            "rule itself never changes, no new terms appear, and the re-explanation "
+            "is simpler, not fancier. Cover concepts that are genuinely hard to "
+            "re-explain: dangling modifiers, theme vs topic, gerunds, passive voice."
+        ),
+    },
+    "no_error_praise": {
+        "category": "feedback",
+        "brief": (
+            "The student shares writing that is actually CORRECT (or asks 'is this "
+            "right?' about a correct sentence), sometimes casually inside chat "
+            "('the ref was blind lol is that bad grammar'). The tutor gives a clear "
+            "verdict that it is correct and says why in one plain sentence - it "
+            "NEVER invents a problem that isn't there, never pretends something "
+            "needs fixing. Then it offers one optional way to make the writing "
+            "stronger (style, not correctness) or a next practice item. Include "
+            "cases where a colloquial phrase is fine as informal speech."
+        ),
+    },
+    "refer_back": {
+        "category": "explain",
+        "brief": (
+            "A conversation where a LATER student turn refers back to an EARLIER "
+            "turn, and the tutor must answer using that earlier content, not start "
+            "a new topic. Examples of the later turn: 'wait, go back to the first "
+            "problem - was I right or wrong?', 'can you explain that again, I "
+            "didn't get it', 'which one of those was the comma splice?', 'what did "
+            "you mean by \"stands alone\"?', 'so was my second answer better than "
+            "my first?'. The tutor's reply must explicitly refer to the earlier "
+            "exchange (quote the earlier sentence or restate the earlier verdict) "
+            "and give a clear direct answer to the follow-up (e.g. 'You were right' "
+            "or 'Not quite - here is the earlier sentence again...') before adding "
+            "one small next step. The grammar content must stay correct."
+        ),
+    },
 }
 
 
@@ -146,10 +202,14 @@ def gen_one(style_guide: str, flavor: str, idx: int) -> tuple[Record | None, str
     if not valid_shape(msgs):
         return None, "bad shape (roles/length)"
 
-    # Gate 1: every tutor turn must hold the band mechanically.
+    # Gate 1: every tutor turn must hold the band mechanically (quote-back
+    # exemption: words quoted from the student's own turns don't count).
+    student_so_far = ""
     for m in msgs:
+        if m["role"] == "user":
+            student_so_far += " " + m["content"]
         if m["role"] == "assistant":
-            mech = level_check(m["content"])
+            mech = level_check(m["content"], student_text=student_so_far)
             if not mech["ok"]:
                 return None, f"mechanical on a turn: {mech['reasons'][:2]}"
 
@@ -177,6 +237,8 @@ def gen_one(style_guide: str, flavor: str, idx: int) -> tuple[Record | None, str
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-flavor", type=int, default=60)
+    ap.add_argument("--flavors", default=None,
+                    help="Comma-separated subset of flavors (default: all)")
     ap.add_argument("--out", default="data/tutor_train_multiturn.jsonl")
     ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
@@ -185,7 +247,10 @@ def main() -> None:
     print(f"Teacher: {cfg.name} / {cfg.model}")
     style_guide = load_style_guide()
 
-    jobs = [(fl, i) for fl in FLAVORS for i in range(args.per_flavor)]
+    flavors = list(FLAVORS) if not args.flavors else [
+        f.strip() for f in args.flavors.split(",") if f.strip() in FLAVORS
+    ]
+    jobs = [(fl, i) for fl in flavors for i in range(args.per_flavor)]
     kept: list[Record] = []
     rejects: dict[str, int] = {}
 

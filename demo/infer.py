@@ -30,8 +30,11 @@ def main() -> None:
     ap.add_argument("--adapter", default=None, help="Optional LoRA adapter id/path")
     ap.add_argument("--system", default="minimal", choices=list(SYSTEM_PROMPTS), help="System prompt mode")
     ap.add_argument("--load-in-4bit", action="store_true")
-    ap.add_argument("--max-new-tokens", type=int, default=256)
+    ap.add_argument("--max-new-tokens", type=int, default=192,
+                    help="Replies are 3-8 short sentences; 192 covers them and is faster than 256")
     ap.add_argument("--temperature", type=float, default=0.7)
+    ap.add_argument("--history-turns", type=int, default=8,
+                    help="Prior messages sent as context (larger = better memory, slower)")
     args = ap.parse_args()
 
     system = SYSTEM_PROMPTS[args.system]
@@ -39,7 +42,8 @@ def main() -> None:
     model = NpcModel(args.model, adapter_id=args.adapter, load_in_4bit=args.load_in_4bit)
     cfg = GenConfig(max_new_tokens=args.max_new_tokens, temperature=args.temperature)
 
-    print("\nYour writing tutor is ready. (type 'quit' to leave)\n")
+    print("\nYour writing tutor is ready. (type 'quit' to leave, '/reset' to clear the conversation)\n")
+    history: list[dict] = []
     while True:
         try:
             user = input("you> ").strip()
@@ -48,9 +52,16 @@ def main() -> None:
             break
         if user.lower() in {"quit", "exit"}:
             break
+        if user.lower() == "/reset":
+            history = []
+            print("(conversation cleared)\n")
+            continue
         if not user:
             continue
-        reply = model.generate(user, system=system, cfg=cfg)
+        reply = model.generate(user, system=system, cfg=cfg,
+                               history=history[-args.history_turns:])
+        history += [{"role": "user", "content": user},
+                    {"role": "assistant", "content": reply}]
         print(f"\nTutor> {reply}\n")
 
 

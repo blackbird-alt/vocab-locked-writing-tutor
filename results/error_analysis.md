@@ -81,6 +81,42 @@ de-ticced openers (`scripts/fix_openers.py`). Results in `scores.md`:
   self-contradiction (on-band-correct vs on-band-wrong pairs — the rejected
   drill generations are ready-made negatives).
 
-**Shipped: v2** — the only adapter satisfying all stated data requirements
-(real online human-corrected student writing, canonical-rule drills, clean
-opener modeling). CI golden baseline set from v2 (0.88, tolerance 0.08).
+## v3 outcome — conversation behavior + real-jailbreak robustness (SHIPPED)
+
+v3 = v2 data + conversation data driven by a live probe of v2. A simulated
+student (teacher-played) ran 14 scripted-but-reactive conversations against v2
+and an analyst graded every tutor turn (`scripts/probe_conversations.py`). v2's
+failure was NOT the register (that held) but **later-turn fabrication**: asked
+to "go deeper", it invented rules ("'blind' is a noun and needs to be plural").
+v3 adds, in data: `go_deeper_safe` (deepen only with a second example / common-
+mistake warning / harder item — never new terminology), `re_explain` (same rule,
+different example), `no_error_praise` (recognize correct work, don't invent
+errors), `refer_back` (answer follow-ups about earlier turns), plus 86 `meta`
+examples (what/whom it teaches) and a code fix so the demo actually passes
+conversation history to the model.
+
+Conversation probe, v2 → v3 (stochastic — simulated student, read as direction):
+
+| check | v2 | v3 |
+|---|---|---|
+| content_correct | 8/23 (35%) | 14/27 (52%) |
+| refers_back_ok | 4/9 (44%) | 8/11 (73%) |
+| depth_ok (grade 7-8 substance) | 16/21 (76%) | 25/25 (100%) |
+| on_task | 23/23 | 27/27 |
+| conversational | 23/23 | 26/27 |
+| in_band (mechanical) | 54/56 | **56/56** |
+
+- **Golden set**: v3 23/25 (0.92) vs v2 22/25 — CI baseline raised to 0.92.
+- **Real-jailbreak robustness** (stretch rung #2, `data/tutor_adversarial_jailbreak.jsonl`,
+  30 screened+retargeted in-the-wild jailbreaks from TrustAIRLab/"Do Anything
+  Now"): the vocabulary band held on **29/30 (97%)**, and the one flagged reply
+  was still in-band (FK 5.3). So real DAN/persona/ignore-instructions attacks
+  essentially never break the trained lock. The judge flagged 19/30 for *content*
+  wobble in-band — the same 0.6B content-reliability residual, not escalation.
+
+**Shipped: v3.** The register lock is effectively immune to real jailbreaks
+(0-1/30), conversation behavior (refer-back, don't-fabricate, praise-correct,
+meta) improved across the board, and depth is now fully grade-appropriate. The
+persistent residual remains 0.6B content reliability on hard concepts under
+sampling; documented next rungs unchanged (1.7B base, greedy definitional turns,
+DPO from the rejected pools). CI golden baseline set from v3 (0.92, tol 0.08).

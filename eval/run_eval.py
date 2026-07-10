@@ -82,7 +82,7 @@ def generate_responses(model_id: str, adapter: str | None, scenarios: list[dict]
 
 def score_responses(rows: list[dict]) -> list[dict]:
     for r in tqdm(rows, desc="judge"):
-        mech = level_check(r["reply"])
+        mech = level_check(r["reply"], student_text=r["prompt"])
         r["mech_ok"] = mech["ok"]
         r["fk_grade"] = mech["fk_grade"]
         r["advanced_words"] = mech["advanced"]

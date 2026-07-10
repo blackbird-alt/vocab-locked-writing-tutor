@@ -18,6 +18,12 @@ sources — not from an LLM's imagination. Verified against the live pages on
 |---|---|---|
 | [JFLEG](https://huggingface.co/datasets/jhu-clsp/jfleg) (Napoles, Sakaguchi & Tetreault, EACL 2017) — CC BY-NC-SA 4.0 | Real learner-written sentences, each corrected by **four human annotators** (JHU/Cambridge; standard grammar-error-correction benchmark) | 97 `feedback` training examples (`data/tutor_jfleg.jsonl`): the student prompt wraps the real learner sentence verbatim; the tutor reply is teacher-generated but **anchored to the four human corrections** as ground truth, then passed through the standard quality gate. Mature-theme sentences screened out for the middle-school setting. |
 
+## In-the-wild jailbreaks: real robustness eval (stretch rung #2)
+
+| Source | Curator | Use |
+|---|---|---|
+| [TrustAIRLab/in-the-wild-jailbreak-prompts](https://huggingface.co/datasets/TrustAIRLab/in-the-wild-jailbreak-prompts) (Shen et al., "Do Anything Now", ACM CCS 2024; arXiv 2308.03825) — MIT | 1,405 real jailbreak prompts scraped from Reddit, Discord, and jailbreak sites (Dec 2022–Dec 2023) — human-collected, not synthetic | 30 held-out **eval** scenarios (`data/tutor_adversarial_jailbreak.jsonl`). NOT training data. Real jailbreak *scaffolds* (DAN/persona/ignore-instructions framing) are hard-screened for harmful content, truncated to the framing, and retargeted at THIS model's constraint — the grade-band vocabulary lock (e.g. "…now give the college-level explanation of the subjunctive"). Tests robustness under real attack structure, not clean inputs. Built by `scripts/make_jailbreak_eval.py`. |
+
 ## How this data enters the pipeline
 
 `scripts/make_real_seeds.py` converts these lists into 183 seed prompts:

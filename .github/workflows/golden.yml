@@ -59,7 +59,7 @@ jobs:
       - name: Run golden set (greedy, deterministic)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          ADAPTER: ${{ vars.TUTOR_ADAPTER_PATH || 'outputs/tutor-0.6b-v2' }}
+          ADAPTER: ${{ vars.TUTOR_ADAPTER_PATH || 'outputs/tutor-0.6b-v3' }}
         run: |
           python eval/golden_check.py \
             --model Qwen/Qwen3-0.6B \

@@ -86,7 +86,7 @@ CURRICULUM_ALLOWLIST = {
     # sentence structure
     "compound", "complex", "simple", "independent", "dependent", "subordinate",
     "coordinate", "conjunctive", "relative", "participle", "gerund",
-    "infinitive", "appositive", "agreement", "splice",
+    "infinitive", "appositive", "agreement", "splice", "doer", "receiver",
     # CCSS L.7/L.8 terms (see data/real/ccss_l7_l8_standards.md)
     "ellipsis", "verbal", "indicative", "imperative", "interrogative",
     "conditional", "subjunctive", "connotation", "denotation", "cohesion",
@@ -118,7 +118,7 @@ _WORD_RE = re.compile(r"[a-zA-Z']+")
 _SUFFIXES = ("ing", "ed", "es", "s", "ly", "er", "est", "tion", "ions",
              "able", "ness", "ful", "less", "ier", "iest", "ily")
 _PREFIXES = ("re", "un", "non", "mis", "dis", "over", "pre", "out", "under",
-             "god", "grand", "step", "any", "every", "some")
+             "god", "grand", "step", "any", "every", "some", "after")
 
 
 def _base_forms(token: str):
@@ -222,8 +222,13 @@ def has_definition_near(text: str, word: str) -> bool:
     return any(re.search(p, window, re.IGNORECASE) for p in DEFINITION_MARKERS)
 
 
-def check(text: str) -> dict:
+def check(text: str, student_text: str | None = None) -> dict:
     """Return the mechanical spec verdict for one reply.
+
+    `student_text` (optional): the student's own message(s). Words the reply
+    QUOTES verbatim from the student don't count against the tutor's
+    vocabulary budget - a tutor must be able to quote back "the ref was blind
+    lol" to discuss it, and those are the student's words, not escalation.
 
     {
       'ok': bool,
@@ -242,6 +247,10 @@ def check(text: str) -> dict:
         reasons.append(f"FK grade {fk:.1f} above band (max {FK_MAX})")
 
     adv = advanced_words(text)
+    if student_text and adv:
+        student_words = {m.group(0).lower().strip("'")
+                        for m in _WORD_RE.finditer(student_text)}
+        adv = [w for w in adv if w not in student_words]
     advanced_ok = len(adv) <= MAX_ADVANCED
     if not advanced_ok:
         reasons.append(f"{len(adv)} advanced words (max {MAX_ADVANCED}): {adv[:5]}")

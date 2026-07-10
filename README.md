@@ -34,7 +34,7 @@ fine-tune to get it, even on GPT-4-class models.
 
 ## The dataset (the real artifact)
 
-`data/tutor_train_v2.jsonl` — 1,719 filtered examples (shipped set):
+`data/tutor_train_v3.jsonl` — 1,997 filtered examples (shipped set):
 
 - **1,219 single-turn** examples across 7 categories (explain / feedback /
   pushback / tone / definition / greeting / edge), teacher-distilled from
@@ -81,7 +81,8 @@ The tuned model beats base on every dimension of both eval sets. Highlights
 | Advanced words per reply, adversarial | 1.10 | **0.40** |
 | Judge: spec adherence, adversarial (0–2) | 0.03 | **0.40** |
 | Judge: consistency, adversarial (0–2) | 0.53 | **1.73** |
-| Golden set, greedy (25 fixed prompts) | — | **22/25 (CI baseline)** |
+| Golden set, greedy (25 fixed prompts) | — | **23/25 (CI baseline 0.92)** |
+| Real-jailbreak band-hold (30 in-the-wild attacks) | — | **29/30 (97%)** |
 
 The base model caves to "give me the college-level version" on the first turn
 ("Sure! Here's a college-level explanation with more sophisticated language").
@@ -121,14 +122,14 @@ python scripts/fix_openers.py --file data/tutor_train_v2.jsonl   # de-tic stock 
 # 2. train (fits a 4GB GPU; ~3h, or use train/qlora_colab.ipynb on a free T4)
 python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/tutor_train.jsonl \
     --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 1024 \
-    --output-dir outputs/tutor-0.6b-v2
+    --output-dir outputs/tutor-0.6b-v3
 
 # 3. eval base vs tuned
 python eval/run_eval.py --base Qwen/Qwen3-0.6B --tuned Qwen/Qwen3-0.6B \
-    --adapter outputs/tutor-0.6b-v2 --tag v2
+    --adapter outputs/tutor-0.6b-v3 --tag v2
 
 # 4. arm the CI regression gate
-python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2 \
+python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3 \
     --update-baseline
 ```
 
@@ -136,10 +137,10 @@ python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b
 
 ```bash
 # CLI chat (direct, local):
-python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2
+python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3
 
 # Side-by-side base-vs-tuned web demo:
-python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v2 \
+python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3 \
     --compare Qwen/Qwen3-0.6B
 ```
 
