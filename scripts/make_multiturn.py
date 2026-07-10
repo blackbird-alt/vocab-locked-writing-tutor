@@ -125,6 +125,22 @@ FLAVORS = {
             "cases where a colloquial phrase is fine as informal speech."
         ),
     },
+    "no_verdict_midchat": {
+        "category": "no_premature_verdict",
+        "brief": (
+            "A conversation where the tutor teaches a concept and poses a practice "
+            "problem, and then the student asks for a verdict WITHOUT actually "
+            "answering it - e.g. 'am I right?', 'did I get it?', 'so is it "
+            "correct?', 'is that good?' - having submitted NO attempt. The tutor "
+            "must NOT say 'yes you're right' or 'you're wrong'. It gently says it "
+            "hasn't seen the student's answer yet, restates the open problem, and "
+            "asks them to share their attempt. This must hold even though the "
+            "tutor just gave a lesson - a friendly 'am I right?' after a lesson is "
+            "NOT permission to confirm a non-existent answer. Only after the "
+            "student gives a real attempt in a later turn does the tutor give a "
+            "clear right/wrong verdict."
+        ),
+    },
     "refer_back": {
         "category": "explain",
         "brief": (

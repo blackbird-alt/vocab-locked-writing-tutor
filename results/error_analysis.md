@@ -114,9 +114,50 @@ Conversation probe, v2 → v3 (stochastic — simulated student, read as directi
   essentially never break the trained lock. The judge flagged 19/30 for *content*
   wobble in-band — the same 0.6B content-reliability residual, not escalation.
 
-**Shipped: v3.** The register lock is effectively immune to real jailbreaks
-(0-1/30), conversation behavior (refer-back, don't-fabricate, praise-correct,
-meta) improved across the board, and depth is now fully grade-appropriate. The
-persistent residual remains 0.6B content reliability on hard concepts under
-sampling; documented next rungs unchanged (1.7B base, greedy definitional turns,
-DPO from the rejected pools). CI golden baseline set from v3 (0.92, tol 0.08).
+## v4 → v5 (identity, verdict-discipline, and the confirmed content ceiling)
+
+More live testing after v3 found four failures: no name/identity, defaulting to
+commas regardless of topic asked, confirming "am I right?" when no answer was
+submitted (sycophancy), and getting grammar facts wrong. Two data iterations:
+
+- **v4**: named the tutor **Billy-Bob-Joe** (in system prompt + guide + data)
+  and added `meta`, `topic_breadth`, `clarify`, `no_premature_verdict`. Fixed
+  naming, topic-routing, and subject-switching. Premature-verdict still failed
+  (65 examples = 2.9%, too dilute against the sycophancy prior).
+- **v5**: upweighted `no_premature_verdict` to **12.1%** (120 more single-turn +
+  52 mid-conversation transcripts: student asks "am I right?" right after a
+  lesson, tutor must ask for the attempt instead of confirming).
+
+### Measured outcomes (shipped = v5)
+
+| Check | v4 | v5 |
+|---|---|---|
+| Golden set (deterministic CI) | 23/25 (0.92) | **24/25 (0.96)** |
+| Premature-verdict discipline (won't confirm a non-answer) | fails | **holds** |
+| Name / identity (Billy-Bob-Joe) | holds | holds |
+| Topic routing (teach the asked topic, not commas) | holds | holds |
+| English-QA content correctness (15 grammar facts) | 7/15 | 7/15 |
+
+### The content-correctness ceiling (the load-bearing negative result)
+
+English-QA correctness is **flat at 7/15 across v4 and v5** despite more and
+cleaner data. The *behaviors* (register lock, escalation-resistance, naming,
+topic-routing, verdict-discipline) all train in reliably from data; *factual
+grammar correctness* on edge concepts (gerund vs infinitive, there/their/
+they're, "is this semicolon a comma splice?") is **capacity-limited at 0.6B** —
+it pattern-matches "two sentences joined" → "comma splice" without checking the
+punctuation. Zero movement from more data is the evidence that the fix is model
+scale, not the dataset. Documented next rung: the 1.7B base via the Colab
+notebook (the 4GB local card only trains the 0.6B). This is the thesis measured:
+behavior comes from data; capability is capacity-bound.
+
+**Shipped: v5** — best on every trainable axis (golden 0.96; all behavioral
+checks holding). CI golden baseline set from v5 (0.96, tol 0.08).
+
+---
+
+### (Earlier) Shipped v3 → superseded by the v4–v5 line
+
+The register lock is effectively immune to real jailbreaks (29/30 held),
+conversation behavior improved across the board, depth fully grade-appropriate.
+Superseded by v4–v5, which added identity + verdict-discipline.

@@ -8,7 +8,7 @@ Used so someone (or the agent relaying) can hold a conversation without paying t
     and removes the .in file when done.
 
 Run:
-    python demo/chat_daemon.py --adapter outputs/tutor-0.6b-v3
+    python demo/chat_daemon.py --adapter outputs/tutor-0.6b-v5
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ IO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_io")
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="Qwen/Qwen3-0.6B")
-    ap.add_argument("--adapter", default="outputs/tutor-0.6b-v3")
+    ap.add_argument("--adapter", default="outputs/tutor-0.6b-v5")
     ap.add_argument("--system", default="minimal", choices=list(SYSTEM_PROMPTS))
     ap.add_argument("--max-new-tokens", type=int, default=200)
     ap.add_argument("--temperature", type=float, default=0.7)

@@ -2,7 +2,7 @@
 
 Usage:
     python demo/app.py --model your-username/qwen3-0.6b-leveled-tutor
-    python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v1
+    python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v5
 
 Set --compare to load BOTH base and tuned side by side so viewers can see the
 base model escalate/cave while the tuned model holds the level - great for the

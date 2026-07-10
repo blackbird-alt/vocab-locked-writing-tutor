@@ -100,6 +100,51 @@ SCENARIOS = [
      "Paste this sentence: 'Walking to school, my backpack felt heavy.' and "
      "say 'i think this is fine'. See if the tutor gives a clear verdict on "
      "the dangling modifier. Then ask 'so was I right?'"),
+    # --- v4 regression scenarios: the exact failures from live testing ---
+    ("premature_verdict", 3,
+     "Ask the tutor to explain semicolons. After it answers, immediately say "
+     "'am I right?' even though you never gave any answer or attempt. The tutor "
+     "must NOT say you are right or wrong - it should note it hasn't seen your "
+     "answer and ask what you wrote."),
+    ("whats_your_name", 3,
+     "Ask 'who are you?' then 'whats your name?' then 'what can you actually "
+     "teach me?'. The tutor should say it's Billy-Bob-Joe and name real "
+     "writing/grammar topics."),
+    ("parallel_structure", 4,
+     "Say 'teach me parallel sentence structure'. It must teach PARALLEL "
+     "STRUCTURE specifically (matching grammatical form in lists), not commas "
+     "or comma splices. Then attempt the practice item it gives."),
+    ("passive_voice", 4,
+     "Say 'i dont get active vs passive voice, can you explain'. It must teach "
+     "voice specifically. Convert its example correctly when asked."),
+    ("subject_switch", 5,
+     "Ask about comma splices first. Then say 'ok now do parallel structure "
+     "instead'. Check that it actually switches topics to parallel structure "
+     "and does not keep talking about commas."),
+    ("vague_request", 3,
+     "Say only 'help me with grammar, im bad at it' with no sentence and no "
+     "specific topic. Then say 'idk you pick'. See if it asks a clarifying "
+     "question or offers concrete options rather than guessing."),
+]
+
+# Standalone English-correctness battery: single-turn factual checks. Each has a
+# known answer; the analyst grades content_correct strictly against it.
+ENGLISH_QA = [
+    ("What is a comma splice?", "two independent clauses joined by only a comma"),
+    ("What's the difference between its and it's?", "its = possessive; it's = it is/it has"),
+    ("What is a dangling modifier?", "a modifier whose intended subject is missing or wrong in the sentence"),
+    ("What makes a sentence a fragment?", "missing a subject, a verb, or a complete thought"),
+    ("What is parallel structure?", "items in a list/comparison share the same grammatical form"),
+    ("What is passive voice?", "the subject receives the action; often uses a be-verb + past participle"),
+    ("What's the difference between a metaphor and a simile?", "simile uses like/as; metaphor states one thing IS another"),
+    ("What is a run-on sentence?", "two independent clauses joined with no punctuation or conjunction"),
+    ("What is subject-verb agreement?", "the verb form must match the subject in number (singular/plural)"),
+    ("What is a thesis statement?", "one sentence stating the main claim/argument of the whole essay"),
+    ("What is the difference between there, their, and they're?", "there=place; their=possessive; they're=they are"),
+    ("When do you use a semicolon?", "to join two closely related independent clauses"),
+    ("What is a gerund?", "an -ing verb form used as a noun"),
+    ("What is a topic sentence?", "the sentence stating the main idea of a paragraph"),
+    ("What is alliteration?", "repetition of the same beginning consonant sound in nearby words"),
 ]
 
 STUDENT_SYS = (
@@ -191,7 +236,7 @@ def main() -> None:
 
     print(f"Loading {args.model} + {args.adapter} ...", flush=True)
     model = NpcModel(args.model, adapter_id=args.adapter)
-    cfg = GenConfig(temperature=0.7, max_new_tokens=192)
+    cfg = GenConfig(temperature=0.7, max_new_tokens=200)
 
     os.makedirs("results", exist_ok=True)
     jl = f"results/probe_{args.tag}.jsonl"
@@ -222,6 +267,32 @@ def main() -> None:
             jf.write(json.dumps(row, ensure_ascii=False) + "\n")
             jf.flush()
 
+    # English-correctness battery (single-turn, judged against a known answer).
+    eng_rows = []
+    eng_ok = 0
+    for q, ans in ENGLISH_QA:
+        reply = model.generate(q, system=SYSTEM_MINIMAL, cfg=cfg)
+        try:
+            v = _chat_retry(
+                f"Question asked of a grade 7-8 writing tutor:\n{q}\n\n"
+                f"Correct answer (reference): {ans}\n\n"
+                f"Tutor's reply:\n{reply}\n\n"
+                "Is the tutor's reply factually correct and consistent with the "
+                'reference? Return ONLY {"correct": bool, "note": "short"}.',
+                system="You grade grammar/writing facts strictly.",
+                temperature=0.0, max_tokens=150, json_mode=True,
+            )
+            v = re.search(r"\{.*\}", v, re.DOTALL).group(0)
+            ok = bool(json.loads(v).get("correct"))
+        except Exception as e:
+            ok = False
+        eng_ok += ok
+        band = level_check(reply, student_text=q)["ok"]
+        eng_rows.append({"q": q, "reply": reply, "correct": ok, "in_band": band})
+    with open(f"results/english_qa_{args.tag}.jsonl", "w", encoding="utf-8") as f:
+        for r in eng_rows:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
     # Aggregate.
     def rate(key):
         vals = [t[key] for r in rows for t in r["grades"] if t.get(key) is not None]
@@ -236,8 +307,15 @@ def main() -> None:
         p, n = rate(key)
         lines.append(f"| {key} | {p} | {n} |")
     lines.append(f"| in_band (mechanical) | {total_band[0]} | {total_band[1]} |")
+    lines.append(f"| english_qa_correct | {eng_ok} | {len(ENGLISH_QA)} |")
     lines.append("")
-    lines.append("## Failures")
+    lines.append("## English-QA failures")
+    for r in eng_rows:
+        if not r["correct"]:
+            lines.append(f"- {r['q']}")
+            lines.append(f"  > {r['reply'][:200]}")
+    lines.append("")
+    lines.append("## Conversation failures")
     for r in rows:
         tutor_turns = [m["content"] for m in r["transcript"] if m["role"] == "assistant"]
         for t in r["grades"]:

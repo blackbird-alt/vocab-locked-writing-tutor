@@ -57,7 +57,7 @@ unfiltered:
 
 ## 4. How much data
 
-- **1,997 training examples** in `data/tutor_train_v3.jsonl` (~2,400 raw
+- **1,997 training examples** in `data/tutor_train_v3.jsonl` (shipped v3) (~2,400 raw
   generated → gate kept ~83%). Within it: 340 multi-turn transcripts, 255
   canonical-rule drills, 97 real-student (JFLEG), 86 meta.
 - Held out (never trained on): 52 eval scenarios + 30 adversarial + 25 golden.
@@ -117,3 +117,38 @@ not learning outcomes — that would need real students and a controlled study.
   next rungs documented (1.7B, greedy definitional turns, DPO from rejects).
 
 Repo: https://github.com/blackbird-alt/vocab-locked-writing-tutor (CI green).
+
+
+---
+
+## ADDENDUM — final state (v3 shipped)
+
+**Three model iterations, each fixing a data problem found by eval:**
+- v1 → content errors in-band → v2 added canonical-rule drills + JFLEG + de-tic
+- v2 → live conversation probe found later-turn fabrication → v3 added
+  conversation data (go-deeper-safe / re-explain / praise-correct / refer-back)
+  + meta ("what do you teach") + a code fix (demo now passes chat history)
+
+**v3 headline numbers:**
+- Golden set (deterministic CI): 23/25 = 0.92 (baseline raised to 0.92)
+- Conversation probe v2→v3: content 35→52%, refers-back 44→73%,
+  depth 76→100%, in-band 56/56
+- Held-out mechanical fail rate: ~0-2% (base 32.7%); FK 5.9→3.4
+
+**Two human-sourced datasets you were asked to use — how each was handled:**
+- **JFLEG** (real learner sentences, 4 human annotators each): 97 feedback
+  TRAINING examples, tutor replies anchored to the human corrections.
+- **TrustAIRLab in-the-wild jailbreaks** ("Do Anything Now", CCS 2024): 30
+  screened + retargeted real jailbreaks as a robustness EVAL. Band held
+  **29/30 (97%)** — real DAN/persona attacks essentially never break the lock.
+- Datasets I evaluated and REJECTED with reasons (good to mention): the
+  Socratic ML dataset (wrong subject, 84% off-band), MentorVerse teacher-mode
+  (CS worksheets, 100% off-band, forbidden markdown). Shows I vetted, not just
+  grabbed.
+
+**Honest residual (say it first):** at 0.6B, content-rule correctness on hard
+concepts still wobbles sample-to-sample. The register/robustness is solved;
+factual reliability is capacity-limited. Next rungs: 1.7B base, greedy decoding
+for definitional turns, DPO from the rejected pools.
+
+Repo (CI green): https://github.com/blackbird-alt/vocab-locked-writing-tutor

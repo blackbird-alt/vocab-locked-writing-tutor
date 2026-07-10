@@ -122,14 +122,14 @@ python scripts/fix_openers.py --file data/tutor_train_v2.jsonl   # de-tic stock 
 # 2. train (fits a 4GB GPU; ~3h, or use train/qlora_colab.ipynb on a free T4)
 python train/train_local.py --model Qwen/Qwen3-0.6B --train-file data/tutor_train.jsonl \
     --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 1024 \
-    --output-dir outputs/tutor-0.6b-v3
+    --output-dir outputs/tutor-0.6b-v5
 
 # 3. eval base vs tuned
 python eval/run_eval.py --base Qwen/Qwen3-0.6B --tuned Qwen/Qwen3-0.6B \
-    --adapter outputs/tutor-0.6b-v3 --tag v2
+    --adapter outputs/tutor-0.6b-v5 --tag v2
 
 # 4. arm the CI regression gate
-python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3 \
+python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v5 \
     --update-baseline
 ```
 
@@ -137,10 +137,10 @@ python eval/golden_check.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b
 
 ```bash
 # CLI chat (direct, local):
-python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3
+python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v5
 
 # Side-by-side base-vs-tuned web demo:
-python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v3 \
+python demo/app.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v5 \
     --compare Qwen/Qwen3-0.6B
 ```
 

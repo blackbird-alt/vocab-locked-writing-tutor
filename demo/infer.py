@@ -9,7 +9,7 @@ python demo/infer.py --model Qwen/Qwen3-0.6B --system minimal
 python demo/infer.py --model your-username/qwen3-0.6b-leveled-tutor --system minimal
 
 # Base + LoRA adapter (unmerged):
-python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v1
+python demo/infer.py --model Qwen/Qwen3-0.6B --adapter outputs/tutor-0.6b-v5
 """
 
 from __future__ import annotations

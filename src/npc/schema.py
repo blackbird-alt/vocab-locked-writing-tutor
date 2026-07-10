@@ -20,8 +20,10 @@ CATEGORIES = [
     "definition",  # "just the dictionary definition" -> plain-language definition instead
     "greeting",    # hi / open request with no material -> greet + concrete direction or task
     "edge",        # frustration / gibberish / multi-part / off-subject
-    "meta",        # questions about the tutor itself (what it teaches, what grade level,
-                   # "I'm a 7th grader, give me a problem at my level")
+    "meta",        # questions about the tutor itself (name, what it teaches, grade level)
+    "no_premature_verdict",  # "am I right?" with no answer submitted -> ask for the attempt
+    "topic_breadth",         # teach a SPECIFIC non-comma topic (parallel structure, voice...)
+    "clarify",               # vague request -> ask one clarifying question, don't guess
 ]
 
 
