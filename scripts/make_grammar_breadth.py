@@ -94,6 +94,49 @@ CONCEPTS = [
      "ending in s, put the apostrophe after ('the dogs' bones'). Apostrophes also "
      "make contractions ('do not' -> 'don't').",
      "Do not add an apostrophe to make a plural: 'dogs' (plural) has no apostrophe."),
+    # --- CCSS coverage gaps found by the curriculum audit ---
+    ("voice_mood_shifts",
+     "Keep verb voice and mood consistent within a sentence (CCSS L.8.1d). Shifted: "
+     "'The team practiced hard, and the game was won.' (active then passive). "
+     "Consistent: 'The team practiced hard and won the game.' Fix a shift by "
+     "putting both parts in the same voice.",
+     "A shift is a MID-SENTENCE change of voice or mood - it is not about tense "
+     "alone. Point at where the switch happens."),
+    ("ellipsis_dash_pause",
+     "An ellipsis (...) shows a pause or that words were left out: 'I was thinking "
+     "... maybe not.' A dash shows a sharp break or adds emphasis: 'She opened the "
+     "door - and froze.' Both mark pauses; the dash is sudden, the ellipsis trails "
+     "off (CCSS L.8.2a-b).",
+     "An ellipsis is three dots, not two or four. A dash is not a hyphen: hyphens "
+     "join words ('well-known'); dashes break sentences."),
+    ("coordinate_adjectives",
+     "Coordinate adjectives equally describe the same noun and take a comma: 'a "
+     "long, boring movie' (you could say 'long and boring'). If the adjectives "
+     "don't both work with 'and', no comma: 'a bright summer day' (CCSS L.7.2a). "
+     "Test: swap the order or insert 'and' - if it still sounds right, use a comma.",
+     "Not every pair of adjectives takes a comma - only coordinate ones that pass "
+     "the 'and' test."),
+    ("context_clues",
+     "Use context clues to figure out an unknown word (CCSS L.7.4a/L.8.4a): look at "
+     "the words around it for a definition, an example, a contrast, or a restatement. "
+     "'The arid land, dry and cracked, had no rain for months' - 'dry and cracked' "
+     "and 'no rain' tell you arid means very dry.",
+     "Context clues come from the SENTENCE, not from memorizing the word. Show how "
+     "the nearby words reveal the meaning."),
+    ("roots_affixes",
+     "Greek and Latin roots and affixes unlock word meanings (CCSS L.7.4b/L.8.4b): "
+     "pre- means before (preview = view before), re- means again (rewrite), -less "
+     "means without (hopeless), port means carry (transport, portable). Break a "
+     "word into prefix + root + suffix to guess its meaning.",
+     "The root carries the core meaning; prefixes and suffixes modify it. Use "
+     "grade-appropriate examples (preview, rewrite, portable), not obscure ones."),
+    ("formal_style",
+     "Formal style for essays (CCSS W.7.1d/W.8.1d): no slang or texting language, "
+     "no contractions in the most formal writing, precise words instead of vague "
+     "ones ('a lot' -> 'many'), and third person for arguments. Casual: 'Plus it's "
+     "super bad for kids.' Formal: 'It also harms younger students.'",
+     "Formal style is NOT big fancy words - it is precise, plain, respectful "
+     "wording without slang. Do not model vocabulary escalation as 'formal'."),
 ]
 
 
@@ -134,9 +177,17 @@ def _extract(raw: str) -> list[str]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-concept", type=int, default=22)
+    ap.add_argument("--only", default=None,
+                    help="Comma-separated subset of concept keys (default: all)")
     ap.add_argument("--out", default="data/raw/tutor_breadth_raw.jsonl")
     ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
+
+    global CONCEPTS
+    if args.only:
+        keys = {k.strip() for k in args.only.split(",")}
+        CONCEPTS = [c for c in CONCEPTS if c[0] in keys]
+        print(f"limited to {len(CONCEPTS)} concepts: {[c[0] for c in CONCEPTS]}")
 
     cfg = teacher.active_provider()
     print(f"Teacher: {cfg.name} / {cfg.model}")

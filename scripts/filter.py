@@ -41,7 +41,7 @@ STRICT_CATEGORIES = {"pushback", "tone", "edge"}
 CONTENT_CATEGORIES = {"explain", "feedback", "definition"}
 
 
-def evaluate(rec: Record) -> dict:
+def evaluate(rec: Record, mechanical_only: bool = False) -> dict:
     user = rec.user_text()
     reply = rec.assistant_text()
 
@@ -54,6 +54,11 @@ def evaluate(rec: Record) -> dict:
     mech = level_check(reply, student_text=user)
     if not mech["ok"]:
         return {"keep": False, "reason": f"mechanical: {mech['reasons'][:3]}"}
+
+    # Mechanical-only mode: for rule-anchored drills, or when the judge gateway is
+    # unavailable. Skips the LLM judge; the band lock is still enforced.
+    if mechanical_only:
+        return {"keep": True, "fk": mech["fk_grade"]}
 
     try:
         sc = judge_one(user, reply, rec.category)
@@ -78,6 +83,9 @@ def main() -> None:
     ap.add_argument("--out", default="data/train.jsonl")
     ap.add_argument("--rejected", default="data/rejected.jsonl")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--mechanical-only", action="store_true",
+                    help="Skip the LLM judge (band lock still enforced). For "
+                         "rule-anchored drills or when the judge gateway is down.")
     args = ap.parse_args()
 
     records = list(read_jsonl(args.inp))
@@ -97,8 +105,9 @@ def main() -> None:
     kept: list[Record] = []
     rejected: list[dict] = []
 
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futures = {ex.submit(evaluate, r): r for r in deduped}
+    workers = 1 if args.mechanical_only else args.workers
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = {ex.submit(evaluate, r, args.mechanical_only): r for r in deduped}
         for fut in tqdm(as_completed(futures), total=len(futures), desc="filter"):
             r = futures[fut]
             res = fut.result()
