@@ -34,7 +34,8 @@ https://github.com/blackbird-alt/vocab-locked-writing-tutor
 
 | Path | Rows | What |
 |---|---|---|
-| `train/tutor_train_v3.jsonl` | 1,997 | **Shipped training set.** 8 categories + 340 multi-turn transcripts. |
+| `train/tutor_train_final.jsonl` | 3,667 | **Shipped training set.** 11 categories, all CCSS L.7/L.8 skills, multi-turn transcripts. |
+| `train/iterations/tutor_train_v3.jsonl` | 1,997 | v3 iteration. |
 | `train/iterations/tutor_train_v2.jsonl` | 1,719 | v2 iteration (drills + JFLEG). |
 | `train/iterations/tutor_train_v1.jsonl` | 1,367 | v1 iteration. |
 | `eval/held_out_scenarios.jsonl` | 52 | Held-out eval scenarios (never trained on). |

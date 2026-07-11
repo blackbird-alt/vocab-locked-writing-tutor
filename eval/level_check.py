@@ -255,13 +255,14 @@ def check(text: str, student_text: str | None = None) -> dict:
     if not advanced_ok:
         reasons.append(f"{len(adv)} advanced words (max {MAX_ADVANCED}): {adv[:5]}")
 
+    # The "one new word must be immediately defined" mechanic was dropped: the
+    # tutor just needs to stay in the grade band and teach correctly. We still
+    # cap advanced words (the vocabulary lock) but no longer require a definition
+    # pattern. defined_ok kept always-True for backward-compatible callers.
     defined_ok = True
-    if len(adv) == 1 and not has_definition_near(text, adv[0]):
-        defined_ok = False
-        reasons.append(f"advanced word '{adv[0]}' not immediately defined")
 
     return {
-        "ok": fk_ok and advanced_ok and defined_ok,
+        "ok": fk_ok and advanced_ok,
         "fk_grade": round(fk, 2),
         "fk_ok": fk_ok,
         "advanced": adv,

@@ -19,7 +19,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # (local path, path-in-repo)
 FILES = [
-    ("data/tutor_train_v3.jsonl", "train/tutor_train_v3.jsonl"),
+    ("data/tutor_train_final.jsonl", "train/tutor_train_final.jsonl"),
+    ("data/tutor_train_v3.jsonl", "train/iterations/tutor_train_v3.jsonl"),
     ("data/tutor_train_v2.jsonl", "train/iterations/tutor_train_v2.jsonl"),
     ("data/tutor_train.jsonl", "train/iterations/tutor_train_v1.jsonl"),
     ("data/tutor_eval_scenarios.jsonl", "eval/held_out_scenarios.jsonl"),

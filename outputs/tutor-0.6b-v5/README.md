@@ -1,62 +1,47 @@
 ---
+license: apache-2.0
 base_model: Qwen/Qwen3-0.6B
-library_name: peft
-model_name: tutor-0.6b-v5
 tags:
-- base_model:adapter:Qwen/Qwen3-0.6B
 - lora
-- sft
-- transformers
-- trl
-licence: license
-pipeline_tag: text-generation
+- peft
+- education
+- writing-tutor
+- grammar
+- qwen3
+library_name: peft
 ---
 
-# Model Card for tutor-0.6b-v5
+# Grade-Level Vocabulary-Locked Writing Tutor (0.6b) — Billy-Bob-Joe
 
-This model is a fine-tuned version of [Qwen/Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B).
-It has been trained using [TRL](https://github.com/huggingface/trl).
+LoRA adapter for **Qwen/Qwen3-0.6B**. A grade 7-8 writing/grammar tutor that stays in the
+grade band, never escalates its vocabulary under pushback ("use bigger words",
+"give me the college version"), and teaches grammar correctly.
 
-## Quick start
+Laptop/offline variant. Runs on a 4 GB GPU in 4-bit. Golden set 24/25; all behaviors held, grammar content capacity-limited.
+
+- **Dataset:** https://huggingface.co/datasets/blackbird0831/slm-assignment-data
+- **Code, eval harness, brainlift:** https://github.com/blackbird-alt/vocab-locked-writing-tutor
+- **Trained on:** 3,667 curated examples (teacher-distilled + JFLEG human-corrected
+  student writing + real CCSS L.7/L.8 curriculum + concept-accuracy drills), each
+  passed a deterministic grade-band gate.
+
+## Use
 
 ```python
-from transformers import pipeline
+from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+base = "Qwen/Qwen3-0.6B"
+tok = AutoTokenizer.from_pretrained(base)
+model = AutoModelForCausalLM.from_pretrained(base, device_map="auto")
+model = PeftModel.from_pretrained(model, "blackbird0831/qwen3-0.6b-writing-tutor")
 
-question = "If you had a time machine, but could only go to the past or the future once and never return, which would you choose and why?"
-generator = pipeline("text-generation", model="None", device="cuda")
-output = generator([{"role": "user", "content": question}], max_new_tokens=128, return_full_text=False)[0]
-print(output["generated_text"])
+msgs = [{"role":"system","content":"You are Billy-Bob-Joe, a friendly writing and grammar tutor for a 7th-8th grade student."},
+        {"role":"user","content":"what is a comma splice?"}]
+ids = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt").to(model.device)
+print(tok.decode(model.generate(ids, max_new_tokens=200)[0][ids.shape[1]:], skip_special_tokens=True))
 ```
 
-## Training procedure
+## Limitation
 
- 
-
-
-
-This model was trained with SFT.
-
-### Framework versions
-
-- PEFT 0.19.1
-- TRL: 1.7.1
-- Transformers: 5.13.0
-- Pytorch: 2.6.0+cu124
-- Datasets: 5.0.0
-- Tokenizers: 0.22.2
-
-## Citations
-
-
-
-Cite TRL as:
-    
-```bibtex
-@software{vonwerra2020trl,
-  title   = {{TRL: Transformers Reinforcement Learning}},
-  author  = {von Werra, Leandro and Belkada, Younes and Tunstall, Lewis and Beeching, Edward and Thrush, Tristan and Lambert, Nathan and Huang, Shengyi and Rasul, Kashif and GallouÃ©dec, Quentin},
-  license = {Apache-2.0},
-  url     = {https://github.com/huggingface/trl},
-  year    = {2020}
-}
-```
+Certifies spec adherence (grade-band lock, escalation-resistance, correct
+grammar rules), not measured learning outcomes. See the repo brainlift.
