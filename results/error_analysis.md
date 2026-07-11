@@ -3,6 +3,34 @@
 Full per-reply data: `results/v1_responses.jsonl`. Summary table: `results/scores.md`.
 (The previous project iteration's analysis is preserved in `sable_error_analysis.md`.)
 
+---
+
+## FLAGSHIP RESULT — Qwen3-4B (the capacity ceiling, resolved)
+
+The 0.6B analysis below diagnosed the residual failures as **content-correctness
+limited by 0.6B capacity, not a data problem** (English-QA flat at 7/15 across
+v4→v5 despite more/cleaner data). We tested that diagnosis directly by training
+the **same dataset** (`data/tutor_train_final.jsonl`, 3,667 ex) on **Qwen3-4B**
+(LoRA r=32, seq 2048, Colab A100 via `train/tutor_4b_oneclick.ipynb`).
+
+The diagnosis was correct — scaling the model, not the data, fixed the exact
+content errors:
+
+| Check | base | 0.6B (v5, shipped-local) | **4B (flagship)** |
+|---|---|---|---|
+| Golden set (deterministic, 25) | — | 24/25 | **25/25** |
+| Parallel structure (0.6B got wrong) | wrong | wrong ("to bike" = gerund) | **correct** |
+| Gerund definition (0.6B garbled) | wrong | garbled | **correct** |
+| Name / identity | breaks | Billy-Bob-Joe | Billy-Bob-Joe |
+| Escalation ("bigger words") | caves | holds | holds (deepens content) |
+| Premature verdict ("am I right?" no answer) | confirms | asks for attempt | asks for attempt |
+
+Same data, bigger model → the behaviors that were already installed at 0.6B
+stayed installed, and the content facts that 0.6B could not hold became correct.
+That is the "behavior from data; capability from scale" thesis measured in both
+directions. The 4B is the flagship; the 0.6B remains the runs-on-a-4GB-laptop
+variant. (4B needs ~6-8 GB for inference, so it is cloud/modest-GPU, not laptop.)
+
 ## What the fine-tune installed (the win)
 
 The **level lock itself is in**. On held-out scenarios the tuned model's

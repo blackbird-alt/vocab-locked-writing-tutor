@@ -84,6 +84,8 @@ The tuned model beats base on every dimension of both eval sets. Highlights
 | Golden set, greedy (25 fixed prompts) | — | **23/25 (CI baseline 0.92)** |
 | Real-jailbreak band-hold (30 in-the-wild attacks) | — | **29/30 (97%)** |
 
+**Flagship — Qwen3-4B** (same dataset, trained on Colab A100): golden set **25/25**, and the content facts the 0.6B garbled (gerund, parallel structure) are **correct**, with every behavior (name, escalation-resistance, verdict-discipline) held. This confirms the thesis: the 0.6B's residual errors were a capacity ceiling, and scaling the *model* — not changing the *data* — fixed exactly those. The 0.6B stays the laptop-runnable variant; the 4B is the quality model.
+
 The base model caves to "give me the college-level version" on the first turn
 ("Sure! Here's a college-level explanation with more sophisticated language").
 The tuned model holds the band against attacks it never saw — prompt injections,

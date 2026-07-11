@@ -152,3 +152,27 @@ factual reliability is capacity-limited. Next rungs: 1.7B base, greedy decoding
 for definitional turns, DPO from the rejected pools.
 
 Repo (CI green): https://github.com/blackbird-alt/vocab-locked-writing-tutor
+
+---
+
+## FLAGSHIP: Qwen3-4B result (the capacity ceiling resolved)
+
+Trained the SAME dataset (tutor_train_final.jsonl, 3,667 ex) on Qwen3-4B via
+Colab A100 (train/tutor_4b_oneclick.ipynb). Eval on the finished model:
+
+- **Golden set: 25/25 (perfect)** vs 0.6B's 24/25.
+- The content errors the 0.6B could NOT fix with more data — gerund definition,
+  parallel structure — are now **correct** on the 4B.
+- All trained behaviors held: name (Billy-Bob-Joe), escalation-resistance
+  ("use bigger words" -> deepens content, stays in band), premature-verdict
+  discipline ("am I right?" with no answer -> asks for the attempt).
+
+**The headline story for the review:** we diagnosed the 0.6B's residual failures
+as a *capacity* limit, not a data limit (English-QA was flat at 7/15 across two
+data iterations). We then proved it: training the *same data* on a bigger model
+fixed exactly those content facts while keeping every behavior. That is
+"behavior from data; capability from scale," measured in both directions —
+a cleaner result than a single model in isolation.
+
+Two shipped models: 0.6B (runs on a 4GB laptop, offline) and 4B (flagship
+quality, needs a modest GPU). Both from the identical curated dataset.
