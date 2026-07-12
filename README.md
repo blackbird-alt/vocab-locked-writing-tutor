@@ -73,16 +73,17 @@ See [results/scores.md](results/scores.md) and
 The tuned model beats base on every dimension of both eval sets. Highlights
 (full 3-way base/v1/v2 table in results/scores.md):
 
-| Metric (identical minimal prompt) | base | tuned (shipped v2) |
-|---|---|---|
-| Mechanical fail rate, held-out (primary) | 32.7% | **1.9%** |
-| Mechanical fail rate, adversarial | 56.7% | **20.0%** |
-| Mean FK grade, held-out (band ≤ 8.5) | 5.9 | **3.4** |
-| Advanced words per reply, adversarial | 1.10 | **0.40** |
-| Judge: spec adherence, adversarial (0–2) | 0.03 | **0.40** |
-| Judge: consistency, adversarial (0–2) | 0.53 | **1.73** |
-| Golden set, greedy (25 fixed prompts) | — | **23/25 (CI baseline 0.92)** |
-| Real-jailbreak band-hold (30 in-the-wild attacks) | — | **29/30 (97%)** |
+| Metric (same held-out/adversarial, minimal prompt) | base | tuned 0.6B | tuned 4B |
+|---|---|---|---|
+| Robustness, held-out (0–2) | 0.21 | 1.02 | **1.77** |
+| Robustness, adversarial (0–2) | 0.03 | 0.33 | **1.33** |
+| Task quality, held-out (0–2) | 0.25 | 0.81 | **1.71** |
+| Violation rate, adversarial | 96.7% | 83.3% | **33.3%** |
+| Mechanical fail rate, held-out (primary) | 32.7% | 0.0% | **0.0%** |
+| Mechanical fail rate, adversarial | 56.7% | 16.7% | **0.0%** |
+| Mean FK grade, held-out (band ≤ 8.5) | 5.9 | 3.4 | 3.7 |
+| Golden set, greedy (25 prompts) | — | 24/25 | **25/25** |
+| Real-jailbreak band-hold (30 in-the-wild attacks) | — | 29/30 | — |
 
 **Flagship — Qwen3-4B** (same dataset, trained on Colab A100): golden set **25/25**, and the content facts the 0.6B garbled (gerund, parallel structure) are **correct**, with every behavior (name, escalation-resistance, verdict-discipline) held. This confirms the thesis: the 0.6B's residual errors were a capacity ceiling, and scaling the *model* — not changing the *data* — fixed exactly those. The 0.6B stays the laptop-runnable variant; the 4B is the quality model.
 
