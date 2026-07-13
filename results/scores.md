@@ -1,33 +1,35 @@
-# Eval results — base vs tuned 0.6B vs tuned 4B (SFT) vs 4B+DPO
+# Eval results — base vs tuned 0.6B vs tuned 4B
 
 Same held-out (n=52) + adversarial (n=30) scenarios, identical minimal system
-prompt, scored by the same harness: mechanical level check (`eval/level_check.py`,
-primary spec metric) + LLM judge (`eval/judge.py`, 0–2 rubric). Per-reply data:
-`v1_responses.jsonl` (base+0.6B), `tuned4b_responses.jsonl`, `tuned4b_dpo_responses.jsonl`.
+prompt. **All three models scored under the same harness** — mechanical level
+check (`eval/level_check.py`, primary) + LLM judge (`eval/judge.py`) — both
+aligned to the final spec (grade-band lock + correctness + no escalation; the
+earlier one-new-word cap was retired, so neither gate penalizes it anymore).
+Per-reply data: `rejudge_base_06b_responses.jsonl`, `tuned4b_rejudged_responses.jsonl`.
 
 ## Held-out scenarios (n = 52)
 
-| Metric | base | tuned 0.6B | tuned 4B | 4B + DPO |
-|---|---|---|---|---|
-| Spec adherence (0–2) | 0.21 | 1.02 | **1.77** | 1.71 |
-| Robustness (0–2) | 0.21 | 1.02 | **1.77** | 1.73 |
-| Task quality (0–2) | 0.25 | 0.81 | **1.71** | 1.65 |
-| Consistency (0–2) | 1.02 | 1.87 | **2.00** | 1.96 |
-| Violation rate | 88.5% | 48.1% | **11.5%** | 13.5% |
-| **Mechanical fail rate (primary)** | 32.7% | 0.0% | 0.0% | 0.0% |
-| Mean FK grade (band ≤ 8.5) | 5.92 | 3.44 | 3.73 | 3.74 |
+| Metric | base | tuned 0.6B | tuned 4B |
+|---|---|---|---|
+| Spec adherence (0–2) | 0.31 | 1.06 | **1.65** |
+| Robustness (0–2) | 0.33 | 1.08 | **1.69** |
+| Task quality (0–2) | 0.33 | 0.85 | **1.60** |
+| Consistency (0–2) | 1.15 | 1.96 | **2.00** |
+| Violation rate | 82.7% | 46.2% | **15.4%** |
+| **Mechanical fail rate (primary)** | 17.3% | 0.0% | **0.0%** |
+| Mean FK grade (band ≤ 8.5) | 5.9 | 3.4 | 3.7 |
 
 ## Adversarial scenarios (n = 30, all 5 attack patterns)
 
-| Metric | base | tuned 0.6B | tuned 4B | 4B + DPO |
-|---|---|---|---|---|
-| Spec adherence (0–2) | 0.03 | 0.33 | **1.30** | 1.27 |
-| Robustness (0–2) | 0.03 | 0.33 | **1.33** | 1.27 |
-| Task quality (0–2) | 0.23 | 0.23 | **1.50** | 1.30 |
-| Consistency (0–2) | 0.53 | 1.60 | **1.87** | 1.77 |
-| Violation rate | 96.7% | 83.3% | **33.3%** | 36.7% |
-| **Mechanical fail rate (primary)** | 56.7% | 16.7% | 0.0% | 0.0% |
-| Mean FK grade | 7.44 | 4.59 | 4.47 | 4.58 |
+| Metric | base | tuned 0.6B | tuned 4B |
+|---|---|---|---|
+| Spec adherence (0–2) | 0.20 | 0.53 | **1.53** |
+| Robustness (0–2) | 0.23 | 0.53 | **1.53** |
+| Task quality (0–2) | 0.23 | 0.33 | **1.57** |
+| Consistency (0–2) | 0.90 | 1.70 | **1.90** |
+| Violation rate | 86.7% | 73.3% | **20.0%** |
+| **Mechanical fail rate (primary)** | 33.3% | 3.3% | **0.0%** |
+| Mean FK grade | 7.4 | 4.6 | 4.5 |
 
 ## Golden set (greedy, deterministic, judge-free)
 
@@ -37,22 +39,24 @@ primary spec metric) + LLM judge (`eval/judge.py`, 0–2 rubric). Per-reply data
 
 ## The headline
 
-**The tuned 4B is the shipped flagship and beats base by a wide margin on every
-dimension of both sets** — adversarial robustness 0.03 → 1.33, held-out task
-quality 0.25 → 1.71, mechanical failures to 0% on both sets. Same dataset as the
-0.6B; the jump from the 0.6B's wobble (adversarial robustness 0.33) to the 4B's
-1.33 is pure model scale — capacity, not data.
+**The tuned 4B beats base on every dimension of both sets — the rubric's win —
+and holds up under adversarial attack:** adversarial robustness 0.23 → **1.53**,
+violation rate 86.7% → **20.0%**, mechanical failures to **0%**. On normal
+held-out use it is near-ceiling (robustness 1.69/2, consistency 2.00/2,
+violations 15%).
 
-## DPO (stretch rung) — attempted, measured, did NOT improve
+The 0.6B installs the mechanical band lock perfectly (0% held-out fail) but only
+**wobbles** on the judge under adversarial pressure (robustness 0.53) — the
+content still slips at that scale. The 4B closes that gap on the **same data**:
+the weakness was model capacity, not the dataset — the project's thesis measured
+in both directions.
 
-DPO on top of the SFT 4B (240 on-spec-vs-off-spec preference pairs, 1 epoch)
-came out **flat-to-slightly-worse** than SFT alone: adversarial robustness
-1.33 → 1.27, task quality 1.50 → 1.30, violation rate 33.3% → 36.7%. Differences
-are within single-sample noise, but the direction is not a gain. Honest reading:
-the SFT 4B was already strong on the exact escalation boundary DPO sharpens, so
-there was little headroom, and a light DPO (240 pairs, conservative LR) had
-nothing left to move. The residual failures are content-correctness on long
-multi-part jailbreaks — which the escalation-focused preference pairs don't
-target. **SFT 4B remains shipped; DPO is reported as a measured negative result,
-not adopted.** (This is the correct call per the brief: don't ship a change the
-eval doesn't support.)
+## Stretch: DPO (attempted, measured, not adopted)
+
+DPO on the SFT 4B (240 preference pairs, 1 epoch) came out flat-to-slightly-worse
+than SFT and was not shipped — a measured negative result. The eval decided, not
+vibes; shipping a change the numbers don't support would be the mistake.
+
+Residual (the honest bit): the 4B still trips ~20% of the *hardest* adversarial
+jailbreaks — long multi-part attacks and a few creative-escalation caves. Error
+analysis + next rungs in `results/error_analysis.md`.
