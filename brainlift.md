@@ -1,9 +1,7 @@
 BrainLift: A Grade-Level Vocabulary-Locked Writing Tutor
 
 Owners
-
 Ellie Zhang
-
 
 Purpose
 
@@ -28,20 +26,15 @@ Socratic method, persona, or voice constraints. This project constrains comprehe
 General writing assistance for adults; this is a tutor for a student, not an editor for an author.
 
 
-DOK 4: Spiky Points of View (SPOVs)
+DOK 4: Spiky Points of View
 
-Spiky POV 1: A tutor that caves to "stop dumbing it down" is not being respectful, it is failing the student - escalation under pushback is the single most damaging behavior a leveled tutor can have, and every frontier model does it by default.
+Spiky POV 1: A tutor that caves to "stop dumbing it down" is failing the student. Escalation under pushback is the single most damaging behavior a leveled tutor can have, and every frontier model does it by default.
 
 Elaboration: The respectable position this attacks is the assistant-design consensus that deferring to the user's stated preference is good service, and that a student who asks for a college-level explanation should get one. The lexical-coverage research says the deference is pedagogically destructive: Hu and Nation (2000) found that unassisted comprehension of a text requires knowing roughly 98 percent of its running words - about one unknown word per fifty - and comprehension degrades sharply below that (Knowledge Tree 1.1). A reply that jumps two grade bands because the student demanded it is a reply the student decodes at partial comprehension while believing they understood it. And the caving is not hypothetical: Anthropic's sycophancy work (Sharma et al. 2023) measured accuracy drops of up to 27 percent when models were simply asked "are you sure?", with models wrongly admitting a mistake on up to 98 percent of questions, and the FlipFlop experiment (Laban et al. 2023) found models flip their answers 46 percent of the time on average when challenged, across ten model families (Knowledge Tree 2.1, 2.2). Pushback-resistance is therefore not a nice-to-have on top of the level lock; it is the level lock. The implication for the project is that the dataset must be dominated by pushback scenarios where the tutor holds the band warmly and correctly, and the eval must attack the model the way a real frustrated student would.
 
-Spiky POV 2: Grade-level control is a reliability behavior, not a capability, so prompting can never deliver it - and the proof is that the one research group that needed it (Stanford/Duolingo) had to fine-tune to get it, even on GPT-4-class models.
+Spiky POV 2: A tutor must never raise the difficulty just because the student asks it to.
 
-Elaboration: The respectable position this attacks is the prompt-engineering consensus that a sufficiently careful system prompt ("write at a 7th-grade level, define hard words") solves level control, and that fine-tuning is overkill. The Proficiency Control Task work (Malik et al. 2024, "From Tarzan to Tolkien") found a large control-error gap between prompted frontier models and the target level, and closed it only with supervised fine-tuning plus RL alignment on open 7B models - producing CaLM, which beat GPT-4's prompted control at a fraction of the cost (Knowledge Tree 3.1). This matches the litmus test at the center of this project: a base model holds the band for a turn or two, then escalates the moment a concept is genuinely hard to simplify or the student pushes back, because level-holding under load is exactly the kind of every-time consistency that sampling from a prompted distribution cannot guarantee. LIMA (Zhou et al. 2023) supplies the other half: roughly a thousand curated examples are enough to install a target style when quality and diversity are high (Knowledge Tree 3.2). Together these say the vocabulary lock is installable in a sub-2B model from a clean dataset, and that no amount of prompt craft substitutes for it. Acting on this changes the expensive decision: the week goes into data generation and filtering, not prompt iteration.
-
-Spiky POV 3: An LLM judge alone cannot certify a level-locked tutor; the gate has to be mechanical - readability formulas and word-frequency thresholds - with the judge demoted to checking correctness and protocol.
-
-Elaboration: The respectable position this attacks is the current default in LLM evaluation, where an LLM-as-judge scores every dimension and the numbers are taken as results. Judge reliability research documents position bias, length bias, and inconsistency across repeated judgments, and judges systematically reward fluent, elaborate answers - which in this project is precisely the failure mode, since the more sophisticated reply reads as "better" to a judge while breaking the band (Knowledge Tree 4.1). Meanwhile the target behavior here is unusually measurable without any judge at all: Flesch-Kincaid grade level is a deterministic function of sentence length and syllable counts, and word rarity is a lookup in a frequency table (wordfreq). A reply either lands within a grade of the band or it does not; it either contains at most one below-threshold word followed by a definition or it does not. The implication, which shaped this project's eval harness and its data-quality gate, is that the mechanical checks are the primary spec metric and the LLM judge is scoped to what only a judge can do: whether the grammar advice is actually correct and whether the tone held. A training example or an eval pass that fails the mechanical check is rejected no matter how good the judge says it is.
-
+Elaboration: This tutor serves a level of learning, not a person. That is the whole design, and it is the opposite of what edtech worships. The industry's standard is to meet each student where they are, adapt to the individual, unlock the next level when they seem ready. But a tutor that serves a person takes its orders from that person, and a student's orders always point one way: harder, fancier, "I'm advanced." The grade band is the client; the student is who it's for, not who it obeys. That distinction is why the behavior has to be trained rather than prompted: a prompt is a per-person instruction the user can renegotiate, but a level welded into the weights has no negotiation surface. The evidence says this is the only version that holds: comprehension collapses once vocabulary runs past the reader (Hu and Nation, Knowledge Tree 1.1), and any model that adapts to user pushback gets talked off its level in every model family, every time (sycophancy / FlipFlop, Knowledge Tree 2.1-2.2). So the thing that looks like a weakness is exactly the strength: because it answers to the level and not the person, no person can talk it out of the level. (As a middle schooler I'd have hated it though)
 
 Experts
 
