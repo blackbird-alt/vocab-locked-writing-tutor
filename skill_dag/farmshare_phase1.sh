@@ -40,7 +40,7 @@ cat > phase1_job.sbatch <<EOF
 #SBATCH --job-name=skilldag-p1
 #SBATCH --partition=$GPU_PARTITION
 #SBATCH --gres=gpu:1
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --mem=32G
 #SBATCH --output=phase1_out/slurm-%j.out
 source ../.venv_skilldag/bin/activate
