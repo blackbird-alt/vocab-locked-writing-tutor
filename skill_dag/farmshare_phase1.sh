@@ -43,6 +43,7 @@ cat > phase1_job.sbatch <<EOF
 #SBATCH --time=08:00:00
 #SBATCH --mem=32G
 #SBATCH --output=phase1_out/slurm-%j.out
+nvidia-smi -L || true
 source ../.venv_skilldag/bin/activate
 set -e
 echo "--- pilot ---"
@@ -59,7 +60,8 @@ cp runs/smoke_random201/eval_log.jsonl phase1_out/
 cp runs/smoke_random201/train_log.jsonl phase1_out/
 echo "PHASE 1 COMPLETE - send back the 3 files in skill_dag/phase1_out/"
 EOF
-sbatch phase1_job.sbatch
+# FarmShare's gpu partition historically requires --qos=gpu; try with it, fall back without
+sbatch --qos=gpu phase1_job.sbatch 2>/dev/null || sbatch phase1_job.sbatch
 echo
 echo "Job submitted. Check with: squeue -u \$USER"
 echo "When done, the 3 result files are in skill_dag/phase1_out/ - copy them back with:"
