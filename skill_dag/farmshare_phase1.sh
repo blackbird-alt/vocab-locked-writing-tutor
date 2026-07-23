@@ -8,12 +8,15 @@ set -e
 cd "$(dirname "$0")"
 
 echo "=== GPU availability on this cluster ==="
-sinfo -o "%P %G %D %a" | (head -1; grep -i gpu) || {
+sinfo -o "%P %G %D"
+# prefer a partition literally named *gpu*; else any partition whose GRES has gpus
+GPU_PARTITION=$(sinfo -h -o "%P %G" | awk 'tolower($1) ~ /gpu/ && $2 ~ /gpu/ {print $1; exit}' | tr -d '*')
+[ -z "$GPU_PARTITION" ] && GPU_PARTITION=$(sinfo -h -o "%P %G" | awk '$2 ~ /gpu/ {print $1; exit}' | tr -d '*')
+if [ -z "$GPU_PARTITION" ]; then
   echo "NO GPU PARTITION VISIBLE. Phase 1 needs one GPU."
-  echo "If FarmShare has no GPUs, this same script works on the team cluster."
+  echo "If this cluster has no GPUs, this same script works on the team cluster."
   exit 1
-}
-GPU_PARTITION=$(sinfo -h -o "%P %G" | grep -i gpu | head -1 | awk '{print $1}' | tr -d '*')
+fi
 echo "using partition: $GPU_PARTITION"
 
 echo "=== environment (one-time, ~5 min) ==="
